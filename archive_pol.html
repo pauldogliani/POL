@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POL // MONOLITH ARCHIVE</title>
+    
+    <!-- Fonts : Syne (Monumental) + Space Mono (Terminal/UI) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/Flip.min.js"></script>
+    <script src="https://unpkg.com/lenis@1.1.9/dist/lenis.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        :root {
+            --bg: #000000;
+            --text: #ffffff;
+            --ui-dim: #222222;
+        }
+
+        ::-webkit-scrollbar { display: none; }
+        html, body {
+            scrollbar-width: none; -ms-overflow-style: none;
+            background-color: var(--bg); color: var(--text);
+            overflow-x: hidden; font-family: 'Space Mono', monospace;
+            cursor: crosshair;
+        }
+
+        .font-syne { font-family: 'Syne', sans-serif; }
+
+        /* Absolute Darkness Grain */
+        .grain-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 9999; opacity: 0.04;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+            mix-blend-mode: exclusion;
+        }
+
+        #webgl-canvas {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            z-index: -1; pointer-events: none;
+        }
+
+        /* Clean Symmetric Grid Item Hover */
+        .vault-item {
+            position: relative;
+            filter: grayscale(100%) brightness(0.3);
+            transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            transform-origin: center center;
+        }
+        .vault-item:hover {
+            filter: grayscale(0%) brightness(1);
+            transform: scale(0.98);
+            z-index: 10;
+        }
+        .vault-item::after {
+            content: ''; position: absolute; inset: 0;
+            border: 1px solid rgba(255,255,255,0);
+            transition: border 0.4s ease;
+        }
+        .vault-item:hover::after {
+            border: 1px solid rgba(255,255,255,0.8);
+            inset: -8px;
+        }
+
+        /* Audio Player Symmetric - Razor Thin */
+        .audio-track {
+            width: 100%; height: 1px; background: var(--ui-dim);
+            position: relative; cursor: pointer; transition: height 0.2s ease;
+        }
+        .audio-track:hover { height: 3px; }
+        .audio-fill {
+            position: absolute; top: 50%; left: 0; height: 100%; background: #ffffff;
+            width: 0%; transform: translateY(-50%); pointer-events: none;
+        }
+        .audio-fill::after {
+            content: ''; position: absolute; top: 50%; right: 0; transform: translate(50%, -50%);
+            width: 2px; height: 10px; background: #ffffff;
+        }
+
+        /* Views */
+        #view-vault { transition: opacity 0.5s ease; }
+        #view-shrine { visibility: hidden; opacity: 0; pointer-events: none; }
+        #view-shrine.active { visibility: visible; opacity: 1; pointer-events: auto; }
+
+        ::selection { background-color: #ffffff; color: #000000; }
+    </style>
+</head>
+<body class="antialiased selection:bg-white selection:text-black">
+    
+    <div class="grain-overlay"></div>
+    <canvas id="webgl-canvas"></canvas>
+
+    <!-- Global Symmetric Nav -->
+    <nav class="fixed top-0 left-0 w-full p-8 flex justify-center items-center z-50 pointer-events-none mix-blend-difference">
+        <div id="logo-main" class="font-syne font-black text-3xl tracking-[0.5em] uppercase text-center cursor-pointer pointer-events-auto transition-transform hover:scale-105 duration-300">
+            POL <br><span class="text-[9px] font-mono tracking-widest text-gray-400">ARCHIVE_VOID</span>
+        </div>
+    </nav>
+
+    <main class="w-full min-h-screen relative z-10">
+        
+        <!-- VIEW 1: THE VAULT (Symmetric Grid) -->
+        <section id="view-vault" class="w-full min-h-screen pt-40 pb-20 px-4 md:px-12 flex justify-center items-center">
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-8 max-w-[1600px] w-full" id="vault-grid">
+                <!-- Injected via JS -->
+            </div>
+        </section>
+
+        <!-- VIEW 2: THE SHRINE (Split Screen Editorial View) -->
+        <section id="view-shrine" class="fixed inset-0 w-full h-full flex justify-center items-center z-40 bg-black/90 backdrop-blur-md">
+            
+            <button id="btn-close" class="absolute top-8 left-8 md:top-1/2 md:left-8 md:-translate-y-1/2 md:-rotate-90 text-[10px] tracking-[0.5em] font-bold uppercase text-gray-500 hover:text-white transition-colors z-50">
+                [ ESC_RETURN ]
+            </button>
+
+            <!-- Layout Editorial : Image à gauche, Texte à droite -->
+            <div class="flex flex-col md:flex-row items-center justify-center gap-8 md:gap-16 w-full max-w-[1400px] px-8">
+                
+                <!-- Left: Central Monolith (Cover Container) -->
+                <div id="shrine-center" class="relative z-10 w-[60vw] md:w-[45vw] max-w-[500px] aspect-square flex justify-center items-center shadow-[0_0_80px_rgba(255,255,255,0.03)]">
+                    <!-- Image gets appended here during FLIP -->
+                </div>
+
+                <!-- Right: Title & Audio Player -->
+                <div class="w-full md:w-[45vw] flex flex-col justify-center items-start opacity-0 translate-y-8" id="shrine-content">
+                    
+                    <h1 id="shrine-title" class="font-syne font-black text-5xl md:text-[6vw] leading-[0.9] uppercase tracking-tighter text-white mb-12 w-full break-words">
+                        TITLE
+                    </h1>
+
+                    <!-- Clean Player Controls -->
+                    <div id="audio-module" class="w-full relative flex flex-col gap-6">
+                        
+                        <div class="flex justify-between w-full text-[10px] tracking-[0.3em] font-mono text-gray-400 uppercase border-b border-white/10 pb-4">
+                            <span id="audio-status" class="flex items-center gap-2">
+                                <span class="w-1.5 h-1.5 bg-white rounded-full inline-block"></span>
+                                SIGNAL_ACTIVE
+                            </span>
+                            <span class="text-gray-600">POL_BEAT_SYSTEM</span>
+                        </div>
+
+                        <div class="w-full flex items-center gap-6">
+                            <button id="btn-play" class="flex-shrink-0 z-20 border border-white/20 p-4 text-white hover:bg-white hover:text-black transition-all">
+                                <i data-lucide="play" class="w-4 h-4 fill-current"></i>
+                            </button>
+                            
+                            <div class="w-full flex flex-col gap-3">
+                                <div id="progress-container" class="audio-track group">
+                                    <div id="progress-bar" class="audio-fill"></div>
+                                </div>
+                                <div class="flex justify-between w-full text-[9px] tracking-widest text-gray-500 font-bold">
+                                    <span id="time-current">00:00</span>
+                                    <span id="time-total">00:00</span>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Audio Node with CORS support for Analyser -->
+            <audio id="global-audio" crossorigin="anonymous"></audio>
+        </section>
+    </main>
+
+    <script>
+        gsap.registerPlugin(ScrollTrigger, Flip);
+
+        // ==========================================
+        // 1. BASE DE DONNÉES STATIQUE (JSON)
+        // ==========================================
+        // C'est ici que tu lies tes images à tes musiques.
+        // Assure-toi que les fichiers audio sont dans un dossier "beats/" à côté de ton index.html
+        const albumsData = [
+            { id: 'college', title: 'Dropout', cover: 'collegedropout.jpg', audio: 'beats/college.mp3' },
+            { id: 'late', title: 'Registration', cover: 'lateregistration.jpg', audio: 'beats/late.mp3' },
+            { id: 'grad', title: 'Graduation', cover: 'graduation.jpg', audio: 'beats/grad.mp3' },
+            { id: '808s', title: '808s', cover: '808.jpg', audio: 'beats/808.mp3' },
+            { id: 'mbdtf', title: 'Twisted', cover: 'mbdtf.jpg', audio: 'beats/mbdtf.mp3' },
+            { id: 'yeezus', title: 'Yeezus', cover: 'yeezus.jpg', audio: 'beats/yeezus.mp3' },
+            { id: 'jik', title: 'King', cover: 'jesusisking.jpg', audio: 'beats/jik.mp3' },
+            { id: 'donda', title: 'Donda', cover: 'donda.jpg', audio: 'beats/donda.mp3' },
+            { id: 'vultures', title: 'Vultures', cover: 'vulture.jpg', audio: 'beats/vultures.mp3' },
+            { id: 'bully', title: 'Bully', cover: 'bully.jpg', audio: 'beats/bully.mp3' }
+        ];
+
+        let activeAlbum = null;
+        let activeImage = null;
+
+        // Web Audio API State (Pour la réactivité 3D)
+        let audioCtx, analyser, dataArray, source;
+        let smoothedAudioLevel = 0;
+
+        const gridContainer = document.getElementById('vault-grid');
+        const viewVault = document.getElementById('view-vault');
+        const viewShrine = document.getElementById('view-shrine');
+        const shrineCenter = document.getElementById('shrine-center');
+        const shrineTitle = document.getElementById('shrine-title');
+        const shrineContent = document.getElementById('shrine-content');
+        const btnClose = document.getElementById('btn-close');
+        
+        // 2. BUILD GRID
+        albumsData.forEach((album) => {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'w-full aspect-square cursor-pointer vault-item flex justify-center items-center bg-[#030303]';
+            wrapper.dataset.id = album.id;
+            
+            const img = document.createElement('img');
+            img.src = album.cover;
+            img.alt = album.title;
+            img.className = 'w-full h-full object-cover';
+            img.dataset.flipId = `cover-${album.id}`;
+            
+            wrapper.appendChild(img);
+            gridContainer.appendChild(wrapper);
+
+            wrapper.addEventListener('click', () => openShrine(album, img, wrapper));
+        });
+
+        // Initialize Audio Context on first interaction
+        function initAudioContext() {
+            if (audioCtx) return;
+            try {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                analyser = audioCtx.createAnalyser();
+                analyser.fftSize = 256;
+                source = audioCtx.createMediaElementSource(audioEl);
+                source.connect(analyser);
+                analyser.connect(audioCtx.destination);
+                dataArray = new Uint8Array(analyser.frequencyBinCount);
+            } catch(e) {
+                console.warn("Web Audio API not supported", e);
+            }
+        }
+
+        // 3. FLIP TRANSITION LOGIC
+        function openShrine(album, imgElement, wrapperElement) {
+            if (activeAlbum) return;
+            initAudioContext();
+            
+            activeAlbum = album;
+            activeImage = imgElement;
+
+            shrineTitle.textContent = album.title;
+            
+            // Lier l'audio statique
+            audioEl.src = album.audio;
+            setupAudioUI();
+
+            const state = Flip.getState(activeImage);
+            shrineCenter.appendChild(activeImage);
+            
+            viewShrine.classList.add('active');
+            gsap.to(viewVault, { opacity: 0, duration: 0.4, pointerEvents: 'none', ease: "power2.inOut" });
+
+            Flip.from(state, {
+                duration: 1.2,
+                ease: "expo.inOut",
+                absolute: true,
+                onComplete: () => {
+                    gsap.to(shrineContent, { y: 0, opacity: 1, duration: 0.8, ease: "power3.out" });
+                    gsap.to(vortexParams, { baseSpeed: 0.008, duration: 2 });
+                }
+            });
+        }
+
+        // Support de la touche Echap
+        window.addEventListener('keydown', (e) => {
+            if(e.key === 'Escape' && viewShrine.classList.contains('active')) {
+                closeShrine();
+            }
+        });
+
+        btnClose.addEventListener('click', closeShrine);
+        document.getElementById('logo-main').addEventListener('click', () => { if(activeAlbum) closeShrine(); });
+
+        function closeShrine() {
+            if (!activeAlbum || !activeImage) return;
+
+            gsap.to(shrineContent, { y: 20, opacity: 0, duration: 0.3 });
+
+            const originalWrapper = document.querySelector(`.vault-item[data-id="${activeAlbum.id}"]`);
+            const state = Flip.getState(activeImage);
+            originalWrapper.appendChild(activeImage);
+
+            gsap.to(viewVault, { opacity: 1, duration: 0.5, pointerEvents: 'auto', delay: 0.4 });
+            viewShrine.classList.remove('active');
+
+            Flip.from(state, {
+                duration: 1.2,
+                ease: "expo.inOut",
+                absolute: true,
+                onComplete: () => {
+                    activeAlbum = null;
+                    activeImage = null;
+                    audioEl.pause();
+                    audioEl.src = '';
+                    gsap.to(vortexParams, { baseSpeed: 0.002, duration: 2 });
+                }
+            });
+        }
+
+        // 4. AUDIO PLAYER (Razor Thin)
+        const audioEl = document.getElementById('global-audio');
+        const btnPlay = document.getElementById('btn-play');
+        const barFill = document.getElementById('progress-bar');
+        const barTrack = document.getElementById('progress-container');
+        const timeCur = document.getElementById('time-current');
+        const timeTot = document.getElementById('time-total');
+
+        const iconPlay = '<i data-lucide="play" class="w-4 h-4 fill-current"></i>';
+        const iconPause = '<i data-lucide="pause" class="w-4 h-4 fill-current"></i>';
+
+        function setupAudioUI() {
+            btnPlay.innerHTML = iconPlay;
+            barFill.style.width = '0%';
+            timeCur.textContent = "00:00";
+            timeTot.textContent = "00:00";
+            gsap.to(btnPlay, { backgroundColor: "transparent", color: "white", duration: 0.3 });
+            lucide.createIcons();
+        }
+
+        btnPlay.addEventListener('click', () => {
+            if(!audioEl.src || audioEl.src.endsWith('undefined')) {
+                console.warn("Fichier audio non trouvé. As-tu placé tes fichiers dans le dossier beats/ ?");
+                return; // Protection si le fichier n'est pas encore sur le serveur
+            }
+
+            if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+            
+            if(audioEl.paused) {
+                audioEl.play().catch(e => console.error("Erreur lecture (fichier potentiellement manquant):", e));
+                btnPlay.innerHTML = iconPause;
+                gsap.to(btnPlay, { backgroundColor: "white", color: "black", duration: 0.3 });
+            } else {
+                audioEl.pause();
+                btnPlay.innerHTML = iconPlay;
+                gsap.to(btnPlay, { backgroundColor: "transparent", color: "white", duration: 0.3 });
+            }
+            lucide.createIcons();
+        });
+
+        // Scrubbing Control
+        let isScrubbing = false;
+        const updateTimeFromEvent = (e) => {
+            if(!audioEl.duration) return;
+            const rect = barTrack.getBoundingClientRect();
+            let pos = (e.clientX - rect.left) / rect.width;
+            pos = Math.max(0, Math.min(1, pos));
+            audioEl.currentTime = pos * audioEl.duration;
+            barFill.style.width = `${pos * 100}%`;
+        };
+
+        barTrack.addEventListener('pointerdown', (e) => {
+            isScrubbing = true;
+            updateTimeFromEvent(e);
+            const onPointerMove = (e) => { if(isScrubbing) updateTimeFromEvent(e); };
+            const onPointerUp = () => {
+                isScrubbing = false;
+                window.removeEventListener('pointermove', onPointerMove);
+                window.removeEventListener('pointerup', onPointerUp);
+            };
+            window.addEventListener('pointermove', onPointerMove);
+            window.addEventListener('pointerup', onPointerUp);
+        });
+
+        audioEl.addEventListener('timeupdate', () => {
+            if(!audioEl.duration || isScrubbing) return;
+            const progress = (audioEl.currentTime / audioEl.duration) * 100;
+            barFill.style.width = `${progress}%`;
+            timeCur.textContent = formatTime(audioEl.currentTime);
+            timeTot.textContent = formatTime(audioEl.duration);
+        });
+
+        audioEl.addEventListener('ended', () => {
+            setupAudioUI();
+        });
+
+        function formatTime(sec) {
+            if(isNaN(sec) || !isFinite(sec)) return "00:00";
+            const m = Math.floor(sec / 60);
+            const s = Math.floor(sec % 60);
+            return `0${m}:${s < 10 ? '0' : ''}${s}`;
+        }
+
+        // 5. THREE.JS 3D ENVIRONMENT (Clean & Audio Reactive)
+        const canvas = document.getElementById('webgl-canvas');
+        const scene = new THREE.Scene();
+        
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.z = 40;
+
+        const renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true, powerPreference: "high-performance" });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+        const particlesGeometry = new THREE.BufferGeometry();
+        const particlesCount = 3500;
+        const posArray = new Float32Array(particlesCount * 3);
+        const sizesArray = new Float32Array(particlesCount);
+
+        for(let i = 0; i < particlesCount * 3; i+=3) {
+            const radius = 15 + Math.random() * 35;
+            const theta = Math.random() * Math.PI * 2;
+            const y = (Math.random() - 0.5) * 80;
+
+            posArray[i] = Math.cos(theta) * radius;
+            posArray[i+1] = y;
+            posArray[i+2] = Math.sin(theta) * radius;
+            
+            sizesArray[i/3] = Math.random();
+        }
+
+        particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+        particlesGeometry.setAttribute('aSize', new THREE.BufferAttribute(sizesArray, 1));
+
+        // Shader Reactif : Plus propre et pointu
+        const particlesMaterial = new THREE.ShaderMaterial({
+            uniforms: {
+                uTime: { value: 0 },
+                uAudioLevel: { value: 0 },
+                uColorBase: { value: new THREE.Color(0x2a2a2a) }, 
+                uColorHighlight: { value: new THREE.Color(0xffffff) }
+            },
+            vertexShader: `
+                uniform float uTime;
+                uniform float uAudioLevel;
+                attribute float aSize;
+                varying float vAlpha;
+                
+                void main() {
+                    vec3 pos = position;
+                    // Expansion géométrique selon les basses
+                    pos += normal * (uAudioLevel * 2.5);
+                    
+                    vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
+                    gl_PointSize = (1.5 * aSize + (uAudioLevel * 3.0)) * (50.0 / -mvPosition.z);
+                    gl_Position = projectionMatrix * mvPosition;
+                    vAlpha = aSize;
+                }
+            `,
+            fragmentShader: `
+                uniform vec3 uColorBase;
+                uniform vec3 uColorHighlight;
+                uniform float uAudioLevel;
+                varying float vAlpha;
+                
+                void main() {
+                    float dist = length(gl_PointCoord - vec2(0.5));
+                    if(dist > 0.5) discard;
+                    
+                    vec3 finalColor = mix(uColorBase, uColorHighlight, uAudioLevel * 1.8);
+                    gl_FragColor = vec4(finalColor, (0.5 - dist) * vAlpha * (0.2 + uAudioLevel));
+                }
+            `,
+            transparent: true,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false
+        });
+
+        const particleSystem = new THREE.Points(particlesGeometry, particlesMaterial);
+        scene.add(particleSystem);
+
+        const vortexParams = { baseSpeed: 0.002 };
+        let currentRotationSpeed = 0;
+        
+        let mouseX = 0; let mouseY = 0;
+        window.addEventListener('mousemove', (e) => {
+            mouseX = (e.clientX / window.innerWidth) * 2 - 1;
+            mouseY = -(e.clientY / window.innerHeight) * 2 + 1;
+        });
+
+        const clock = new THREE.Clock();
+
+        function animate() {
+            requestAnimationFrame(animate);
+            const elapsedTime = clock.getElapsedTime();
+            
+            // Audio Analysis : Isoler les basses (kicks)
+            if (analyser && !audioEl.paused) {
+                analyser.getByteFrequencyData(dataArray);
+                let sum = 0;
+                for(let i = 0; i < 15; i++) sum += dataArray[i]; 
+                const rawLevel = (sum / 15) / 255.0; 
+                smoothedAudioLevel += (rawLevel - smoothedAudioLevel) * 0.15;
+            } else {
+                smoothedAudioLevel += (0 - smoothedAudioLevel) * 0.05;
+            }
+
+            particlesMaterial.uniforms.uTime.value = elapsedTime;
+            particlesMaterial.uniforms.uAudioLevel.value = smoothedAudioLevel;
+            
+            // Rotation du système accélérée par la musique
+            currentRotationSpeed = vortexParams.baseSpeed + (smoothedAudioLevel * 0.012);
+            particleSystem.rotation.y += currentRotationSpeed;
+            
+            // Parallax
+            camera.position.x += (mouseX * 3 - camera.position.x) * 0.03;
+            camera.position.y += (mouseY * 3 - camera.position.y) * 0.03;
+            camera.lookAt(0, 0, 0);
+
+            renderer.render(scene, camera);
+        }
+        window.onload = () => { animate(); };
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // 6. GLOBAL SETUP
+        lucide.createIcons();
+        const lenis = new Lenis({ duration: 1.2, smoothWheel: true });
+        lenis.on('scroll', ScrollTrigger.update);
+        gsap.ticker.add((time) => { lenis.raf(time * 1000); });
+        gsap.ticker.lagSmoothing(0);
+
+    </script>
+</body>
+</html>
