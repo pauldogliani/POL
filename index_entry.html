@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POL // INITIATION</title>
+    
+    <!-- Typographies: Syne pour l'impact brutaliste, Space Mono pour le côté technique/chirurgical -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+    
+    <!-- CDNs -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    <script src="https://unpkg.com/lenis@1.1.9/dist/lenis.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        :root {
+            --bg-color: #030303;
+            --text-color: #ffffff;
+            --accent: #333333;
+        }
+
+        /* Reset & Base */
+        ::-webkit-scrollbar { display: none; }
+        html, body {
+            scrollbar-width: none; -ms-overflow-style: none;
+            background-color: var(--bg-color); 
+            color: var(--text-color);
+            overflow-x: hidden; 
+            cursor: none; /* Curseur custom géré en JS */
+        }
+
+        .font-syne { font-family: 'Syne', sans-serif; }
+        .font-mono { font-family: 'Space Mono', monospace; }
+
+        /* Cinematic Grain (Base Aura) */
+        .grain-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 9999; opacity: 0.04;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+            mix-blend-mode: exclusion;
+        }
+
+        /* WebGL Background */
+        #fluid-canvas {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            z-index: 0; pointer-events: none;
+        }
+
+        /* Custom Cursor */
+        .cursor-dot {
+            position: fixed; top: 0; left: 0; width: 8px; height: 8px;
+            background: white; border-radius: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none; z-index: 10000;
+            mix-blend-mode: difference;
+            transition: width 0.3s, height 0.3s;
+        }
+        .cursor-ring {
+            position: fixed; top: 0; left: 0; width: 40px; height: 40px;
+            border: 1px solid rgba(255,255,255,0.4); border-radius: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none; z-index: 9999;
+            transition: width 0.3s, height 0.3s, background-color 0.3s;
+        }
+        
+        body:hover .cursor-dot { opacity: 1; }
+        .hovering .cursor-dot { width: 0px; height: 0px; }
+        .hovering .cursor-ring {
+            width: 80px; height: 80px;
+            background-color: rgba(255,255,255,0.1);
+            backdrop-filter: blur(2px);
+            border-color: rgba(255,255,255,0.8);
+        }
+
+        /* Typography Masterpiece */
+        .pol-title {
+            font-size: clamp(8rem, 25vw, 25rem);
+            line-height: 0.75;
+            letter-spacing: -0.04em;
+            mix-blend-mode: difference; /* Interagit majestueusement avec le fluide 3D */
+            color: #ffffff;
+            will-change: transform, opacity;
+        }
+
+        /* Directory Items */
+        .dir-row {
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .dir-row:hover {
+            border-bottom-color: rgba(255,255,255,0.4);
+            background: linear-gradient(90deg, rgba(255,255,255,0.03) 0%, transparent 100%);
+        }
+        
+        .dir-row .dir-arrow {
+            opacity: 0; transform: translateX(-20px);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .dir-row:hover .dir-arrow {
+            opacity: 1; transform: translateX(0);
+        }
+
+        .dir-row:hover .dir-title {
+            transform: translateX(20px);
+            color: #ffffff;
+        }
+        .dir-title {
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            color: rgba(255,255,255,0.6);
+        }
+
+        /* Spectral Image Reveal */
+        .spectral-img-wrapper {
+            position: absolute;
+            right: 10%; top: 50%;
+            transform: translateY(-50%) rotate(5deg) scale(0.9);
+            width: 300px; aspect-ratio: 1;
+            opacity: 0;
+            pointer-events: none;
+            overflow: hidden;
+            transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            filter: grayscale(100%) contrast(1.5) brightness(0.4);
+            mix-blend-mode: screen; /* Rend l'image discrète et texturée */
+            z-index: -1;
+        }
+        
+        .dir-row:hover .spectral-img-wrapper {
+            opacity: 1;
+            transform: translateY(-50%) rotate(0deg) scale(1);
+            right: 5%;
+        }
+
+        .spectral-img {
+            width: 100%; height: 100%;
+            object-fit: cover;
+            transform: scale(1.2);
+            transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .dir-row:hover .spectral-img {
+            transform: scale(1);
+        }
+
+        /* Loader */
+        #loader {
+            position: fixed; inset: 0; background: #030303; z-index: 99999;
+            display: flex; justify-content: center; align-items: center;
+        }
+
+        ::selection { background-color: #ffffff; color: #000000; }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Preloader -->
+    <div id="loader">
+        <div class="font-mono text-[10px] tracking-[0.5em] text-gray-500 uppercase animate-pulse">
+            INITIALIZING_VOID
+        </div>
+    </div>
+
+    <!-- Cursors -->
+    <div class="cursor-dot"></div>
+    <div class="cursor-ring"></div>
+
+    <!-- Overlays & Backgrounds -->
+    <div class="grain-overlay"></div>
+    <canvas id="fluid-canvas"></canvas>
+
+    <!-- Main Content -->
+    <main class="relative z-10 w-full" id="smooth-wrapper">
+        
+        <!-- Section 1: Hero (Le Grand POL) -->
+        <section class="h-screen w-full flex items-center justify-center relative overflow-hidden" id="hero-section">
+            <h1 class="font-syne font-black pol-title uppercase relative z-10" id="hero-title">
+                POL
+            </h1>
+            
+            <div class="absolute bottom-10 left-1/2 -translate-x-1/2 font-mono text-[9px] tracking-[0.4em] text-gray-500 uppercase flex flex-col items-center gap-2 opacity-60" id="scroll-indicator">
+                <span>Scroll to access</span>
+                <div class="w-[1px] h-8 bg-gray-500/50">
+                    <div class="w-full h-1/3 bg-white animate-bounce"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: Directories (Les Répertoires) -->
+        <section class="min-h-screen w-full pt-32 pb-40 px-6 md:px-12 flex flex-col justify-center relative z-20" id="directories-section">
+            
+            <div class="max-w-6xl w-full mx-auto">
+                <div class="font-mono text-[10px] tracking-[0.3em] text-gray-500 mb-12 uppercase border-b border-white/10 pb-4">
+                    [ SYSTEM_DIRECTORIES ]
+                </div>
+
+                <div class="flex flex-col w-full" id="directory-list">
+                    
+                    <!-- L'accès au site principal : KANYE PROJECT -->
+                    <a href="pol_archive_void.html" class="dir-row group relative block w-full py-8 md:py-12 cursor-none" data-hover>
+                        <div class="flex items-center w-full">
+                            <div class="font-mono text-sm md:text-base text-gray-600 mr-8 md:mr-16">01 //</div>
+                            
+                            <i data-lucide="arrow-right" class="dir-arrow w-6 h-6 text-white absolute left-14 md:left-24"></i>
+                            
+                            <h2 class="dir-title font-syne font-bold text-4xl md:text-6xl uppercase tracking-tighter">
+                                Kanye Project
+                            </h2>
+                            
+                            <div class="ml-auto font-mono text-[9px] md:text-xs tracking-widest text-gray-500 border border-gray-500/30 px-3 py-1 rounded-full group-hover:border-white group-hover:text-white transition-colors">
+                                STATUS: ACTIVE
+                            </div>
+                        </div>
+
+                        <!-- Image Spectrale (Discrète et stylisée) -->
+                        <div class="spectral-img-wrapper hidden md:block">
+                            <img src="image_a18886.jpg" alt="Kanye Cover" class="spectral-img">
+                            <div class="absolute inset-0 bg-black/40 mix-blend-multiply"></div>
+                        </div>
+                    </a>
+
+                    <!-- Placeholders pour futurs projets -->
+                    <a href="#" class="dir-row group relative block w-full py-8 md:py-12 cursor-none opacity-50 hover:opacity-100" data-hover>
+                        <div class="flex items-center w-full">
+                            <div class="font-mono text-sm md:text-base text-gray-600 mr-8 md:mr-16">02 //</div>
+                            <i data-lucide="lock" class="dir-arrow w-5 h-5 text-gray-400 absolute left-14 md:left-24"></i>
+                            <h2 class="dir-title font-syne font-bold text-4xl md:text-6xl uppercase tracking-tighter text-gray-500">
+                                Unclassified
+                            </h2>
+                            <div class="ml-auto font-mono text-[9px] md:text-xs tracking-widest text-gray-600">
+                                [ LOCKED ]
+                            </div>
+                        </div>
+                    </a>
+
+                    <a href="#" class="dir-row group relative block w-full py-8 md:py-12 cursor-none opacity-50 hover:opacity-100" data-hover>
+                        <div class="flex items-center w-full">
+                            <div class="font-mono text-sm md:text-base text-gray-600 mr-8 md:mr-16">03 //</div>
+                            <i data-lucide="lock" class="dir-arrow w-5 h-5 text-gray-400 absolute left-14 md:left-24"></i>
+                            <h2 class="dir-title font-syne font-bold text-4xl md:text-6xl uppercase tracking-tighter text-gray-500">
+                                Void System
+                            </h2>
+                            <div class="ml-auto font-mono text-[9px] md:text-xs tracking-widest text-gray-600">
+                                [ ENCRYPTED ]
+                            </div>
+                        </div>
+                    </a>
+
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        // --------------------------------------------------------
+        // 1. INITIALISATION & CURSEUR (Aura Standards)
+        // --------------------------------------------------------
+        lucide.createIcons();
+        gsap.registerPlugin(ScrollTrigger);
+
+        const cursorDot = document.querySelector('.cursor-dot');
+        const cursorRing = document.querySelector('.cursor-ring');
+        let mouseX = window.innerWidth / 2;
+        let mouseY = window.innerHeight / 2;
+        let dotX = mouseX, dotY = mouseY;
+        let ringX = mouseX, ringY = mouseY;
+
+        // Custom Cursor Logic (Smooth Follow)
+        window.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+        });
+
+        const renderCursor = () => {
+            dotX += (mouseX - dotX) * 0.2;
+            dotY += (mouseY - dotY) * 0.2;
+            ringX += (mouseX - ringX) * 0.1;
+            ringY += (mouseY - ringY) * 0.1;
+            
+            cursorDot.style.transform = `translate(${dotX}px, ${dotY}px) translate(-50%, -50%)`;
+            cursorRing.style.transform = `translate(${ringX}px, ${ringY}px) translate(-50%, -50%)`;
+            requestAnimationFrame(renderCursor);
+        };
+        requestAnimationFrame(renderCursor);
+
+        // Hover states for links
+        document.querySelectorAll('a[data-hover]').forEach(link => {
+            link.addEventListener('mouseenter', () => document.body.classList.add('hovering'));
+            link.addEventListener('mouseleave', () => document.body.classList.remove('hovering'));
+        });
+
+        // --------------------------------------------------------
+        // 2. WEBGL FLUID SHADER (Sombre & Bouillonnant avec curseur)
+        // --------------------------------------------------------
+        const canvas = document.getElementById('fluid-canvas');
+        const scene = new THREE.Scene();
+        const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+        const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+        
+        function resize() {
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            if(material) {
+                material.uniforms.u_resolution.value.set(window.innerWidth, window.innerHeight);
+            }
+        }
+        window.addEventListener('resize', resize);
+
+        // GLSL Shaders
+        const vertexShader = `
+            varying vec2 vUv;
+            void main() {
+                vUv = uv;
+                gl_Position = vec4(position, 1.0);
+            }
+        `;
+
+        // Shader de fluide abstrait (Perlin noise + déformation à la souris)
+        const fragmentShader = `
+            uniform float u_time;
+            uniform vec2 u_resolution;
+            uniform vec2 u_mouse;
+            uniform float u_scroll;
+            varying vec2 vUv;
+
+            // Simplex 2D noise
+            vec3 permute(vec3 x) { return mod(((x*34.0)+1.0)*x, 289.0); }
+            float snoise(vec2 v){
+                const vec4 C = vec4(0.211324865405187, 0.366025403784439, -0.577350269189626, 0.024390243902439);
+                vec2 i  = floor(v + dot(v, C.yy) );
+                vec2 x0 = v -   i + dot(i, C.xx);
+                vec2 i1;
+                i1 = (x0.x > x0.y) ? vec2(1.0, 0.0) : vec2(0.0, 1.0);
+                vec4 x12 = x0.xyxy + C.xxzz;
+                x12.xy -= i1;
+                i = mod(i, 289.0);
+                vec3 p = permute( permute( i.y + vec3(0.0, i1.y, 1.0 )) + i.x + vec3(0.0, i1.x, 1.0 ));
+                vec3 m = max(0.5 - vec3(dot(x0,x0), dot(x12.xy,x12.xy), dot(x12.zw,x12.zw)), 0.0);
+                m = m*m ;
+                m = m*m ;
+                vec3 x = 2.0 * fract(p * C.www) - 1.0;
+                vec3 h = abs(x) - 0.5;
+                vec3 ox = floor(x + 0.5);
+                vec3 a0 = x - ox;
+                m *= 1.79284291400159 - 0.85373472095314 * ( a0*a0 + h*h );
+                vec3 g;
+                g.x  = a0.x  * x0.x  + h.x  * x0.y;
+                g.yz = a0.yz * x12.xz + h.yz * x12.yw;
+                return 130.0 * dot(m, g);
+            }
+
+            void main() {
+                vec2 st = gl_FragCoord.xy/u_resolution.xy;
+                st.x *= u_resolution.x/u_resolution.y;
+                
+                // Normaliser la position de la souris
+                vec2 mouse = u_mouse / u_resolution;
+                mouse.x *= u_resolution.x/u_resolution.y;
+                // Inverser Y pour correspondre au repère WebGL
+                mouse.y = (1.0 - (u_mouse.y / u_resolution.y)) * (u_resolution.x/u_resolution.y); 
+                // hack simple d'aspect ratio pour la souris
+                mouse = vec2(mouse.x, 1.0 - (u_mouse.y / u_resolution.y));
+                mouse.x *= u_resolution.x/u_resolution.y;
+
+                // Effet de bouillonnement lié à la souris
+                float dist = distance(st, mouse);
+                float mouseWarp = exp(-dist * 4.0) * 0.5;
+
+                // Création du fluide avec le bruit temporel et le scroll
+                vec2 noisePos = st * 3.0;
+                noisePos += u_time * 0.15;
+                noisePos -= mouseWarp;
+                
+                // Superposition de bruits pour la texture pétrole
+                float n1 = snoise(noisePos);
+                float n2 = snoise(noisePos * 2.0 - u_time * 0.2);
+                float n3 = snoise(noisePos * 4.0 + u_time * 0.3);
+                
+                float fluid = (n1 + n2 * 0.5 + n3 * 0.25);
+                
+                // Couleurs extrêmement sombres (Noir, Anthracite, avec reflets très subtils)
+                vec3 colorDark = vec3(0.01, 0.01, 0.02);
+                vec3 colorLight = vec3(0.1, 0.1, 0.12); // Reflets métalliques sombres
+                
+                // Le scroll assombrit encore plus le fond pour laisser le contenu lisible
+                float scrollDarken = clamp(1.0 - u_scroll * 1.5, 0.1, 1.0);
+                
+                // Formule finale
+                float intensity = smoothstep(-0.5, 1.5, fluid);
+                vec3 finalColor = mix(colorDark, colorLight, intensity) * scrollDarken;
+                
+                // Ajout d'une lueur subtile autour du curseur
+                finalColor += vec3(0.05, 0.05, 0.06) * mouseWarp * scrollDarken;
+
+                gl_FragColor = vec4(finalColor, 1.0);
+            }
+        `;
+
+        const geometry = new THREE.PlaneGeometry(2, 2);
+        const material = new THREE.ShaderMaterial({
+            vertexShader,
+            fragmentShader,
+            uniforms: {
+                u_time: { value: 0 },
+                u_resolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
+                u_mouse: { value: new THREE.Vector2(0, 0) },
+                u_scroll: { value: 0 }
+            }
+        });
+
+        const mesh = new THREE.Mesh(geometry, material);
+        scene.add(mesh);
+        resize();
+
+        // Mouse update for Shader
+        let shaderMouseX = 0, shaderMouseY = 0;
+        window.addEventListener('mousemove', (e) => {
+            // Lissage du mouvement de souris pour le shader
+            shaderMouseX = e.clientX;
+            shaderMouseY = e.clientY;
+        });
+
+        const clock = new THREE.Clock();
+        function animateWebGL() {
+            requestAnimationFrame(animateWebGL);
+            material.uniforms.u_time.value = clock.getElapsedTime();
+            
+            // Lerp mouse for fluid simulation smoothness
+            material.uniforms.u_mouse.value.x += (shaderMouseX - material.uniforms.u_mouse.value.x) * 0.05;
+            material.uniforms.u_mouse.value.y += (shaderMouseY - material.uniforms.u_mouse.value.y) * 0.05;
+            
+            // Send normalized scroll to shader (0 to 1 based on first section)
+            const scrollVal = window.scrollY / window.innerHeight;
+            material.uniforms.u_scroll.value = Math.min(scrollVal, 1.0);
+
+            renderer.render(scene, camera);
+        }
+        animateWebGL();
+
+
+        // --------------------------------------------------------
+        // 3. ANIMATIONS GSAP & SCROLL SMOOTH (Lenis)
+        // --------------------------------------------------------
+        const lenis = new Lenis({ duration: 1.2, smoothWheel: true });
+        lenis.on('scroll', ScrollTrigger.update);
+        gsap.ticker.add((time) => { lenis.raf(time * 1000); });
+        gsap.ticker.lagSmoothing(0);
+
+        window.addEventListener('load', () => {
+            // Séquence d'entrée
+            const tl = gsap.timeline();
+            
+            tl.to('#loader', {
+                opacity: 0,
+                duration: 1,
+                ease: "power2.inOut",
+                onComplete: () => document.getElementById('loader').style.display = 'none'
+            })
+            .from('#hero-title', {
+                y: 100,
+                opacity: 0,
+                scale: 0.9,
+                duration: 1.5,
+                ease: "expo.out"
+            }, "-=0.2")
+            .from('#scroll-indicator', {
+                opacity: 0,
+                y: 20,
+                duration: 1
+            }, "-=1");
+
+            // Animation au Scroll du titre POL
+            gsap.to('#hero-title', {
+                scrollTrigger: {
+                    trigger: '#hero-section',
+                    start: 'top top',
+                    end: 'bottom top',
+                    scrub: 1.5,
+                },
+                y: -300,
+                scale: 0.8,
+                opacity: 0,
+                ease: "none"
+            });
+
+            // Apparition des dossiers (Stagger)
+            gsap.from('.dir-row', {
+                scrollTrigger: {
+                    trigger: '#directories-section',
+                    start: 'top 70%',
+                },
+                y: 50,
+                opacity: 0,
+                duration: 1,
+                stagger: 0.15,
+                ease: "power3.out"
+            });
+        });
+
+    </script>
+</body>
+</html>
