@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POL | Audio Archive</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Syne', 'sans-serif'],
+                    },
+                    colors: {
+                        polDark: '#030303'
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        ::-webkit-scrollbar { display: none; }
+        html { scrollbar-width: none; -ms-overflow-style: none; background-color: #030303; }
+        body { 
+            background-color: #030303; 
+            color: #ffffff; 
+            overflow-x: hidden; 
+            selection-background-color: #ffffff;
+            selection-color: #000000;
+        }
+
+        /* Grain cinématographique subtil */
+        .grain-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 9999; opacity: 0.04;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        }
+
+        /* Fond dégradé radial très sombre */
+        .bg-glow {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 100vw; height: 100vh;
+            background: radial-gradient(circle at center, rgba(30, 30, 30, 0.4) 0%, rgba(3, 3, 3, 1) 70%);
+            z-index: 0; pointer-events: none;
+        }
+
+        /* Animation des covers */
+        .cover-img {
+            transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            filter: grayscale(80%) brightness(0.6);
+        }
+        .track-card:hover .cover-img, .track-card.is-playing .cover-img {
+            transform: scale(1.05);
+            filter: grayscale(0%) brightness(1);
+        }
+
+        /* Animation Equalizer */
+        .bar {
+            width: 3px; background-color: white; border-radius: 2px;
+            animation: eq 0.5s ease-in-out infinite alternate;
+            transform-origin: bottom;
+        }
+        .bar:nth-child(2) { animation-delay: -0.2s; }
+        .bar:nth-child(3) { animation-delay: -0.4s; }
+        @keyframes eq { 0% { transform: scaleY(0.2); } 100% { transform: scaleY(1); } }
+        
+        .eq-container { display: none; }
+        .is-playing .eq-container { display: flex; }
+        .is-playing .play-icon { display: none; }
+    </style>
+</head>
+
+<body class="antialiased min-h-screen flex flex-col items-center relative">
+    
+    <div class="bg-glow"></div>
+    <div class="grain-overlay"></div>
+
+    <main class="w-full max-w-5xl px-6 py-24 md:py-32 flex flex-col items-center relative z-10 flex-1">
+        
+        <header class="w-full flex flex-col items-center justify-center mb-24 cursor-default">
+            <h1 class="font-display text-[8rem] md:text-[14rem] leading-none font-extrabold tracking-tighter uppercase text-white drop-shadow-2xl">
+                POL
+            </h1>
+            <p class="font-sans text-xs md:text-sm tracking-[0.5em] uppercase text-white/40 mt-2 font-medium">
+                ALBUM PROJ&#398;CT // UNMIXED audio - UNMASTERED audio
+            </p>
+        </header>
+
+        <div class="w-full grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
+            
+            <!-- TRACK 01 -->
+            <article class="track-card group cursor-pointer flex flex-col" data-index="0" data-id="01" data-audio="intro.mp3" data-title="intro" data-cover="44f4fc7af09ed16f88d9452d2df6475a.jpg">
+                <div class="relative w-full aspect-square rounded-lg overflow-hidden bg-[#111] z-10 border border-white/10 shadow-2xl transition-all duration-500 group-hover:border-white/30 group-hover:-translate-y-2">
+                    <img src="44f4fc7af09ed16f88d9452d2df6475a.jpg" alt="Cover intro" class="cover-img absolute inset-0 w-full h-full object-cover">
+                    
+                    <div class="absolute inset-0 bg-black/40 group-hover:bg-black/10 transition-colors duration-500"></div>
+                    
+                    <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20">
+                        <div class="w-16 h-16 rounded-full border border-white/20 bg-black/60 backdrop-blur-md text-white flex items-center justify-center transform group-hover:scale-110 transition-transform duration-300">
+                            <i data-lucide="play" class="w-6 h-6 ml-1 play-icon fill-white"></i>
+                            <div class="eq-container h-5 items-end gap-[4px]">
+                                <div class="bar h-full bg-white"></div><div class="bar h-full bg-white"></div><div class="bar h-full bg-white"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-6 flex justify-between items-end z-20">
+                    <div>
+                        <p class="text-[10px] text-white/40 font-mono mb-1 uppercase tracking-widest">Track_01</p>
+                        <h2 class="text-2xl font-display font-bold uppercase tracking-wide text-white group-hover:text-gray-300 transition-colors">intro</h2>
+                    </div>
+                </div>
+            </article>
+
+            <!-- TRACK 02 -->
+            <article class="track-card group cursor-pointer flex flex-col" data-index="1" data-id="02" data-audio="noe_qui_a_enfin_trouvé_une_ame.mp3" data-title="noe..." data-cover="ChatGPT Image 3 oct. 2026, 13_57_24.png">
+                <div class="relative w-full aspect-square rounded-lg overflow-hidden bg-[#111] z-10 border border-white/10 shadow-2xl transition-all duration-500 group-hover:border-white/30 group-hover:-translate-y-2">
+                    <img src="ChatGPT Image 3 oct. 2026, 13_57_24.png" alt="Cover noe" class="cover-img absolute inset-0 w-full h-full object-cover">
+                    
+                    <div class="absolute inset-0 bg-black/40 group-hover:bg-black/10 transition-colors duration-500"></div>
+                    
+                    <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20">
+                        <div class="w-16 h-16 rounded-full border border-white/20 bg-black/60 backdrop-blur-md text-white flex items-center justify-center transform group-hover:scale-110 transition-transform duration-300">
+                            <i data-lucide="play" class="w-6 h-6 ml-1 play-icon fill-white"></i>
+                            <div class="eq-container h-5 items-end gap-[4px]">
+                                <div class="bar h-full bg-white"></div><div class="bar h-full bg-white"></div><div class="bar h-full bg-white"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-6 flex justify-between items-end z-20">
+                    <div>
+                        <p class="text-[10px] text-white/40 font-mono mb-1 uppercase tracking-widest">Track_02</p>
+                        <h2 class="text-2xl font-display font-bold uppercase tracking-wide text-white group-hover:text-gray-300 transition-colors">noe...</h2>
+                    </div>
+                </div>
+            </article>
+
+            <!-- TRACK 03 -->
+            <article class="track-card group cursor-pointer flex flex-col" data-index="2" data-id="03" data-audio="untitled2.mp3" data-title="untitled2" data-cover="im.jpg">
+                <div class="relative w-full aspect-square rounded-lg overflow-hidden bg-[#111] z-10 border border-white/10 shadow-2xl transition-all duration-500 group-hover:border-white/30 group-hover:-translate-y-2">
+                    <!-- On réutilise la première cover comme demandé s'il n'y a que 2 images fournies -->
+                    <img src="im.jpg" alt="Cover untitled" class="cover-img absolute inset-0 w-full h-full object-cover">
+                    
+                    <div class="absolute inset-0 bg-black/40 group-hover:bg-black/10 transition-colors duration-500"></div>
+                    
+                    <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20">
+                        <div class="w-16 h-16 rounded-full border border-white/20 bg-black/60 backdrop-blur-md text-white flex items-center justify-center transform group-hover:scale-110 transition-transform duration-300">
+                            <i data-lucide="play" class="w-6 h-6 ml-1 play-icon fill-white"></i>
+                            <div class="eq-container h-5 items-end gap-[4px]">
+                                <div class="bar h-full bg-white"></div><div class="bar h-full bg-white"></div><div class="bar h-full bg-white"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-6 flex justify-between items-end z-20">
+                    <div>
+                        <p class="text-[10px] text-white/40 font-mono mb-1 uppercase tracking-widest">Track_03</p>
+                        <h2 class="text-2xl font-display font-bold uppercase tracking-wide text-white group-hover:text-gray-300 transition-colors">untitled2</h2>
+                    </div>
+                </div>
+            </article>
+
+        </div>
+    </main>
+
+    <div class="fixed bottom-0 left-0 w-full bg-[#050505]/95 backdrop-blur-xl border-t border-white/10 p-4 px-6 md:px-10 flex justify-between items-center z-50 transform translate-y-full transition-transform duration-500 ease-out shadow-[0_-10px_40px_rgba(0,0,0,0.5)]" id="global-player">
+        
+        <div class="flex items-center gap-4 w-1/3">
+            <div class="w-12 h-12 bg-black overflow-hidden rounded relative border border-white/10" id="player-thumb"></div>
+            <div class="hidden md:block">
+                <p class="text-[10px] text-white/40 mb-0.5 font-mono uppercase tracking-widest" id="player-id">00</p>
+                <p class="text-sm font-display font-bold text-white uppercase tracking-wider" id="player-title">SELECT TRACK</p>
+            </div>
+        </div>
+        
+        <div class="flex items-center justify-center gap-6 w-1/3">
+            <button class="text-white/40 hover:text-white transition-colors" id="btn-prev"><i data-lucide="skip-back" class="w-5 h-5"></i></button>
+            <button id="main-play-pause" class="w-12 h-12 rounded-full border border-white/20 bg-white text-black flex items-center justify-center hover:scale-105 transition-all shadow-[0_0_20px_rgba(255,255,255,0.1)]">
+                <i data-lucide="pause" class="w-5 h-5 fill-black"></i>
+            </button>
+            <button class="text-white/40 hover:text-white transition-colors" id="btn-next"><i data-lucide="skip-forward" class="w-5 h-5"></i></button>
+        </div>
+        
+        <div class="hidden md:flex items-center justify-end gap-4 w-1/3">
+            <span class="text-[10px] text-white/40 w-10 text-right font-mono" id="time-current">0:00</span>
+            <div class="h-1 w-32 bg-white/10 relative cursor-pointer rounded-full overflow-hidden" id="progress-container">
+                <div class="absolute top-0 left-0 h-full w-0 bg-white transition-all duration-75" id="progress-bar"></div>
+            </div>
+            <span class="text-[10px] text-white/40 w-10 font-mono" id="time-total">0:00</span>
+        </div>
+    </div>
+
+    <script>
+        // Initialisation des icônes
+        lucide.createIcons();
+
+        // LOGIQUE LECTEUR AUDIO PURE JS
+        const audio = new Audio();
+        let currentCard = null;
+        let isPlaying = false;
+        
+        const cards = Array.from(document.querySelectorAll('.track-card'));
+        const player = document.getElementById('global-player');
+        const pTitle = document.getElementById('player-title');
+        const pId = document.getElementById('player-id');
+        const pThumb = document.getElementById('player-thumb');
+        const btnPlay = document.getElementById('main-play-pause');
+        const pBar = document.getElementById('progress-bar');
+        const pContainer = document.getElementById('progress-container');
+        const tCur = document.getElementById('time-current');
+        const tTot = document.getElementById('time-total');
+
+        const formatTime = (sec) => {
+            if (isNaN(sec)) return "0:00";
+            const m = Math.floor(sec / 60);
+            const s = Math.floor(sec % 60);
+            return `${m}:${s.toString().padStart(2, '0')}`;
+        };
+
+        const updatePlayerUI = (card) => {
+            pId.innerText = card.dataset.id;
+            pTitle.innerText = card.dataset.title;
+            pThumb.innerHTML = `<img src="${card.dataset.cover}" class="w-full h-full object-cover">`;
+            player.style.transform = 'translateY(0)';
+        };
+
+        const togglePlayState = () => {
+            if (audio.paused) {
+                audio.play();
+                isPlaying = true;
+                btnPlay.innerHTML = '<i data-lucide="pause" class="w-5 h-5 fill-black"></i>';
+                if (currentCard) currentCard.classList.add('is-playing');
+            } else {
+                audio.pause();
+                isPlaying = false;
+                btnPlay.innerHTML = '<i data-lucide="play" class="w-5 h-5 ml-1 fill-black"></i>';
+                if (currentCard) currentCard.classList.remove('is-playing');
+            }
+            lucide.createIcons();
+        };
+
+        cards.forEach((card) => {
+            card.addEventListener('click', () => {
+                const src = card.dataset.audio;
+                
+                // Si on clique sur la carte déjà active
+                if (currentCard === card) {
+                    togglePlayState();
+                } else {
+                    // Si on change de track
+                    if (currentCard) currentCard.classList.remove('is-playing');
+                    currentCard = card;
+                    updatePlayerUI(card);
+                    
+                    audio.src = src;
+                    audio.load();
+                    
+                    audio.oncanplay = () => {
+                        tTot.innerText = formatTime(audio.duration);
+                        if (!isPlaying || currentCard === card) togglePlayState();
+                    };
+                    
+                    // Fallback en cas d'erreur de chargement (ex: fichier introuvable)
+                    audio.onerror = () => {
+                        console.error("Erreur de chargement du fichier audio :", src);
+                        tTot.innerText = "ERR";
+                    };
+                }
+            });
+        });
+
+        btnPlay.addEventListener('click', togglePlayState);
+
+        document.getElementById('btn-next').addEventListener('click', () => {
+            if(!currentCard) return;
+            let currentIndex = parseInt(currentCard.dataset.index);
+            cards[(currentIndex + 1) % cards.length].click();
+        });
+
+        document.getElementById('btn-prev').addEventListener('click', () => {
+            if(!currentCard) return;
+            let currentIndex = parseInt(currentCard.dataset.index);
+            cards[(currentIndex - 1 + cards.length) % cards.length].click();
+        });
+
+        audio.addEventListener('timeupdate', () => {
+            if (!audio.duration) return;
+            pBar.style.width = `${(audio.currentTime / audio.duration) * 100}%`;
+            tCur.innerText = formatTime(audio.currentTime);
+        });
+        
+        audio.addEventListener('ended', () => {
+            document.getElementById('btn-next').click();
+        });
+        
+        pContainer.addEventListener('click', (e) => {
+            if (!audio.duration) return;
+            const rect = pContainer.getBoundingClientRect();
+            audio.currentTime = ((e.clientX - rect.left) / rect.width) * audio.duration;
+        });
+    </script>
+</body>
+</html>
