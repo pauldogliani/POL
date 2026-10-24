@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="fr" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POL - Music Studio</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        darkBg: '#09090b',
+                        cardBg: '#121216',
+                        accent: '#8b5cf6',
+                        accentHover: '#7c3aed'
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome & Google Fonts -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #09090b; color: #f4f4f5; }
+        .glass { background: rgba(18, 18, 22, 0.7); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.08); }
+        .vinyl-spin { animation: spin 4s linear infinite; animation-play-state: paused; }
+        .vinyl-spin.playing { animation-play-state: running; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col selection:bg-purple-500 selection:text-white">
+
+    <!-- HEADER -->
+    <header class="sticky top-0 z-50 glass border-b border-white/10 px-6 py-4 flex items-center justify-between">
+        <div class="flex items-center space-x-3 cursor-pointer" onclick="switchTab('home')">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-purple-600 to-indigo-500 flex items-center justify-center shadow-lg shadow-purple-500/30">
+                <i class="fa-solid fa-waveform text-white text-lg"></i>
+            </div>
+            <span class="text-2xl font-extrabold tracking-wider bg-gradient-to-r from-white via-zinc-200 to-zinc-400 bg-clip-text text-transparent">POL</span>
+        </div>
+
+        <!-- NAVIGATION ESPACES -->
+        <nav class="hidden md:flex items-center space-x-2 bg-zinc-900/80 p-1.5 rounded-2xl border border-white/5">
+            <button onclick="switchTab('home')" id="nav-home" class="px-4 py-2 rounded-xl text-sm font-semibold transition-all bg-purple-600 text-white shadow-md">Accueil</button>
+            <button onclick="switchTab('rock')" id="nav-rock" class="px-4 py-2 rounded-xl text-sm font-medium text-zinc-400 hover:text-white transition-all">Rock 2024</button>
+            <button onclick="switchTab('hiphop')" id="nav-hiphop" class="px-4 py-2 rounded-xl text-sm font-medium text-zinc-400 hover:text-white transition-all">Hip-Hop</button>
+            <button onclick="switchTab('jazz')" id="nav-jazz" class="px-4 py-2 rounded-xl text-sm font-medium text-zinc-400 hover:text-white transition-all">Jazz</button>
+            <button onclick="switchTab('acapella')" id="nav-acapella" class="px-4 py-2 rounded-xl text-sm font-medium text-zinc-400 hover:text-white transition-all">Accapella</button>
+            <button onclick="switchTab('romantic')" id="nav-romantic" class="px-4 py-2 rounded-xl text-sm font-medium text-zinc-400 hover:text-white transition-all">Romantique</button>
+        </nav>
+
+        <!-- ADMIN BUTTON -->
+        <button onclick="openAdminModal()" class="flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-zinc-800/80 hover:bg-zinc-700 text-sm font-semibold border border-white/10 transition-all shadow-md hover:scale-105">
+            <i class="fa-solid fa-lock text-purple-400"></i>
+            <span>Admin</span>
+        </button>
+    </header>
+
+    <!-- MOBILE SUBNAV -->
+    <div class="md:hidden flex overflow-x-auto space-x-2 p-3 bg-zinc-900/60 border-b border-white/5 no-scrollbar">
+        <button onclick="switchTab('home')" id="mob-nav-home" class="px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap bg-purple-600 text-white">Accueil</button>
+        <button onclick="switchTab('rock')" id="mob-nav-rock" class="px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap bg-zinc-800 text-zinc-300">Rock</button>
+        <button onclick="switchTab('hiphop')" id="mob-nav-hiphop" class="px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap bg-zinc-800 text-zinc-300">Hip-Hop</button>
+        <button onclick="switchTab('jazz')" id="mob-nav-jazz" class="px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap bg-zinc-800 text-zinc-300">Jazz</button>
+        <button onclick="switchTab('acapella')" id="mob-nav-acapella" class="px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap bg-zinc-800 text-zinc-300">Accapella</button>
+        <button onclick="switchTab('romantic')" id="mob-nav-romantic" class="px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap bg-zinc-800 text-zinc-300">Romantique</button>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-6 py-8 pb-32">
+        
+        <!-- SECTION ACCUEIL -->
+        <section id="sec-home" class="space-y-12">
+            <div class="text-center space-y-4 py-8">
+                <h1 class="text-5xl md:text-7xl font-extrabold tracking-tight bg-gradient-to-r from-white via-zinc-200 to-purple-400 bg-clip-text text-transparent">POL ARCHIVES</h1>
+                <p class="text-zinc-400 text-lg max-w-xl mx-auto">Sélectionne un espace ci-dessous pour découvrir les productions.</p>
+            </div>
+
+            <!-- GRID DES ESPACES -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div onclick="switchTab('rock')" class="group relative h-64 rounded-3xl overflow-hidden cursor-pointer border border-white/10 transition-all hover:scale-[1.02] hover:border-purple-500/50 shadow-xl">
+                    <div class="absolute inset-0 bg-gradient-to-t from-red-950/90 via-zinc-950/40 to-transparent z-10"></div>
+                    <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(239,68,68,0.2),transparent_50%)]"></div>
+                    <div class="absolute bottom-6 left-6 z-20 space-y-1">
+                        <div class="w-10 h-10 rounded-xl bg-red-500/20 flex items-center justify-center border border-red-500/30 text-red-400 mb-3 group-hover:scale-110 transition-transform"><i class="fa-solid fa-guitar"></i></div>
+                        <h2 class="text-2xl font-bold text-white">Premier enregistrement téléphone 2024 Rock</h2>
+                        <p class="text-xs text-zinc-400"><span id="count-rock">0</span> morceau(x)</p>
+                    </div>
+                </div>
+
+                <div onclick="switchTab('hiphop')" class="group relative h-64 rounded-3xl overflow-hidden cursor-pointer border border-white/10 transition-all hover:scale-[1.02] hover:border-purple-500/50 shadow-xl">
+                    <div class="absolute inset-0 bg-gradient-to-t from-purple-950/90 via-zinc-950/40 to-transparent z-10"></div>
+                    <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(168,85,247,0.2),transparent_50%)]"></div>
+                    <div class="absolute bottom-6 left-6 z-20 space-y-1">
+                        <div class="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center border border-purple-500/30 text-purple-400 mb-3 group-hover:scale-110 transition-transform"><i class="fa-solid fa-headphones"></i></div>
+                        <h2 class="text-2xl font-bold text-white">Hip-Hop</h2>
+                        <p class="text-xs text-zinc-400"><span id="count-hiphop">0</span> morceau(x)</p>
+                    </div>
+                </div>
+
+                <div onclick="switchTab('jazz')" class="group relative h-64 rounded-3xl overflow-hidden cursor-pointer border border-white/10 transition-all hover:scale-[1.02] hover:border-amber-500/50 shadow-xl">
+                    <div class="absolute inset-0 bg-gradient-to-t from-amber-950/90 via-zinc-950/40 to-transparent z-10"></div>
+                    <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(245,158,11,0.2),transparent_50%)]"></div>
+                    <div class="absolute bottom-6 left-6 z-20 space-y-1">
+                        <div class="w-10 h-10 rounded-xl bg-amber-500/20 flex items-center justify-center border border-amber-500/30 text-amber-400 mb-3 group-hover:scale-110 transition-transform"><i class="fa-solid fa-sax-hot"></i></div>
+                        <h2 class="text-2xl font-bold text-white">Jazz</h2>
+                        <p class="text-xs text-zinc-400"><span id="count-jazz">0</span> morceau(x)</p>
+                    </div>
+                </div>
+
+                <div onclick="switchTab('acapella')" class="group relative h-64 rounded-3xl overflow-hidden cursor-pointer border border-white/10 transition-all hover:scale-[1.02] hover:border-cyan-500/50 shadow-xl">
+                    <div class="absolute inset-0 bg-gradient-to-t from-cyan-950/90 via-zinc-950/40 to-transparent z-10"></div>
+                    <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(6,182,212,0.2),transparent_50%)]"></div>
+                    <div class="absolute bottom-6 left-6 z-20 space-y-1">
+                        <div class="w-10 h-10 rounded-xl bg-cyan-500/20 flex items-center justify-center border border-cyan-500/30 text-cyan-400 mb-3 group-hover:scale-110 transition-transform"><i class="fa-solid fa-microphone-lines"></i></div>
+                        <h2 class="text-2xl font-bold text-white">Avec Accapella</h2>
+                        <p class="text-xs text-zinc-400"><span id="count-acapella">0</span> morceau(x)</p>
+                    </div>
+                </div>
+
+                <div onclick="switchTab('romantic')" class="group relative h-64 rounded-3xl overflow-hidden cursor-pointer border border-white/10 transition-all hover:scale-[1.02] hover:border-pink-500/50 shadow-xl sm:col-span-2 lg:col-span-1">
+                    <div class="absolute inset-0 bg-gradient-to-t from-pink-950/90 via-zinc-950/40 to-transparent z-10"></div>
+                    <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(236,72,153,0.2),transparent_50%)]"></div>
+                    <div class="absolute bottom-6 left-6 z-20 space-y-1">
+                        <div class="w-10 h-10 rounded-xl bg-pink-500/20 flex items-center justify-center border border-pink-500/30 text-pink-400 mb-3 group-hover:scale-110 transition-transform"><i class="fa-solid fa-heart"></i></div>
+                        <h2 class="text-2xl font-bold text-white">Mélancolie ou romantique</h2>
+                        <p class="text-xs text-zinc-400"><span id="count-romantic">0</span> morceau(x)</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION DYNAMIQUE DES ESPACES -->
+        <section id="sec-space" class="hidden space-y-8">
+            <div class="flex items-center justify-between border-b border-white/10 pb-6">
+                <div>
+                    <button onclick="switchTab('home')" class="text-xs text-purple-400 hover:text-purple-300 font-semibold mb-2 flex items-center space-x-1"><i class="fa-solid fa-arrow-left"></i><span>Retour accueil</span></button>
+                    <h2 id="space-title" class="text-3xl font-extrabold text-white">Espace</h2>
+                </div>
+            </div>
+            <div id="space-tracks-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Les morceaux injectés ici -->
+            </div>
+        </section>
+
+    </main>
+
+    <!-- PLAYER FIXE EN BAS -->
+    <footer id="audio-player-bar" class="fixed bottom-0 left-0 right-0 glass border-t border-white/10 px-6 py-4 z-40 hidden">
+        <div class="max-w-7xl mx-auto flex items-center justify-between gap-4">
+            <div class="flex items-center space-x-4 min-w-0">
+                <div class="relative w-14 h-14 rounded-xl overflow-hidden border border-white/10 flex-shrink-0 bg-zinc-800">
+                    <img id="player-pp" src="" class="w-full h-full object-cover vinyl-spin" alt="PP">
+                </div>
+                <div class="min-w-0">
+                    <h4 id="player-title" class="font-bold text-white truncate text-sm">Nom du morceau</h4>
+                    <p id="player-space" class="text-xs text-zinc-400 truncate">Espace</p>
+                </div>
+            </div>
+
+            <div class="flex flex-col items-center flex-1 max-w-md px-4">
+                <div class="flex items-center space-x-6 mb-1">
+                    <button onclick="togglePlay()" id="play-btn" class="w-10 h-10 rounded-full bg-purple-600 hover:bg-purple-500 flex items-center justify-center text-white shadow-lg transition-transform hover:scale-105"><i class="fa-solid fa-play" id="play-icon"></i></button>
+                </div>
+                <div class="w-full flex items-center space-x-3 text-xs text-zinc-400">
+                    <span id="current-time">0:00</span>
+                    <input type="range" id="progress-bar" value="0" max="100" class="w-full accent-purple-500 cursor-pointer h-1.5 bg-zinc-800 rounded-lg" oninput="seekAudio(this.value)">
+                    <span id="duration">0:00</span>
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-3">
+                <i class="fa-solid fa-volume-high text-zinc-400 text-sm"></i>
+                <input type="range" min="0" max="1" step="0.05" value="1" class="w-20 accent-purple-500 cursor-pointer h-1.5 bg-zinc-800 rounded-lg" oninput="setVolume(this.value)">
+            </div>
+        </div>
+    </footer>
+
+    <!-- MODAL ADMIN / UPLOAD -->
+    <div id="admin-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4">
+        <div class="glass max-w-lg w-full rounded-3xl p-6 md:p-8 space-y-6 relative border border-white/10 shadow-2xl">
+            <button onclick="closeAdminModal()" class="absolute top-6 right-6 text-zinc-400 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
+            
+            <!-- ÉTAPE 1 : LOGIN -->
+            <div id="admin-login-view" class="space-y-6">
+                <div>
+                    <h3 class="text-2xl font-bold text-white">Accès Administrateur</h3>
+                    <p class="text-xs text-zinc-400 mt-1">Entrez le mot de passe pour gérer les productions.</p>
+                </div>
+                <div class="space-y-4">
+                    <input type="password" id="admin-pass-input" placeholder="Mot de passe" class="w-full px-4 py-3 rounded-xl bg-zinc-900 border border-white/10 text-white focus:outline-none focus:border-purple-500 transition-colors">
+                    <button onclick="tryLogin()" class="w-full py-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-semibold shadow-lg transition-all">Se connecter</button>
+                </div>
+            </div>
+
+            <!-- ÉTAPE 2 : UPLOAD / GESTION -->
+            <div id="admin-panel-view" class="space-y-6 hidden">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-2xl font-bold text-white">Panneau Producteur</h3>
+                    <button onclick="logoutAdmin()" class="text-xs text-red-400 hover:underline">Déconnexion</button>
+                </div>
+
+                <div class="space-y-4 bg-zinc-900/50 p-4 rounded-2xl border border-white/5">
+                    <h4 class="font-bold text-sm text-white">Ajouter un nouveau morceau</h4>
+                    <div>
+                        <label class="text-xs text-zinc-400 block mb-1">Espace musical</label>
+                        <select id="up-space" class="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-white/10 text-white text-sm">
+                            <option value="rock">Premier enregistrement téléphone 2024 Rock</option>
+                            <option value="hiphop">Hip-Hop</option>
+                            <option value="jazz">Jazz</option>
+                            <option value="acapella">Avec Accapella</option>
+                            <option value="romantic">Mélancolie ou romantique</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-xs text-zinc-400 block mb-1">Titre du morceau</label>
+                        <input type="text" id="up-title" placeholder="Ex: Beat Trap 01" class="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-white/10 text-white text-sm">
+                    </div>
+                    <div>
+                        <label class="text-xs text-zinc-400 block mb-1">Nom du fichier Audio (dans ton dossier GitHub ex: son.mp3)</label>
+                        <input type="text" id="up-audio" placeholder="mon_beat.mp3" class="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-white/10 text-white text-sm">
+                    </div>
+                    <div>
+                        <label class="text-xs text-zinc-400 block mb-1">Nom de l'image PP (dans ton dossier GitHub ex: pp.jpg)</label>
+                        <input type="text" id="up-pp" placeholder="ma_pp.jpg" class="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-white/10 text-white text-sm">
+                    </div>
+                    <button onclick="addNewTrack()" class="w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-semibold text-sm transition-all shadow-md">Enregistrer le morceau</button>
+                </div>
+
+                <div class="space-y-2">
+                    <h4 class="font-bold text-sm text-white">Morceaux enregistrés (<span id="total-tracks-count">0</span>)</h4>
+                    <div id="admin-tracks-list" class="max-h-40 overflow-y-auto space-y-2 text-xs">
+                        <!-- Liste admin -->
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- LOGIQUE JAVASCRIPT -->
+    <script>
+        const spacesData = {
+            rock: { title: "Premier enregistrement téléphone 2024 Rock", icon: "fa-guitar" },
+            hiphop: { title: "Hip-Hop", icon: "fa-headphones" },
+            jazz: { title: "Jazz", icon: "fa-sax-hot" },
+            acapella: { title: "Avec Accapella", icon: "fa-microphone-lines" },
+            romantic: { title: "Mélancolie ou romantique", icon: "fa-heart" }
+        };
+
+        // Données par défaut ou récupérées du localStorage
+        let tracks = JSON.parse(localStorage.getItem('pol_tracks')) || [
+            { id: 1, space: 'rock', title: 'Exemple Rock 2024', audio: 'rock1.mp3', pp: 'rock1.jpg' },
+            { id: 2, space: 'hiphop', title: 'Exemple Beat 808', audio: 'hiphop1.mp3', pp: 'hiphop1.jpg' }
+        ];
+
+        let currentAudio = new Audio();
+        let isPlaying = false;
+        let currentTrackId = null;
+
+        // Navigation
+        function switchTab(tab) {
+            document.getElementById('sec-home').classList.add('hidden');
+            document.getElementById('sec-space').classList.add('hidden');
+
+            ['home', 'rock', 'hiphop', 'jazz', 'acapella', 'romantic'].forEach(t => {
+                const btn = document.getElementById(`nav-${t}`);
+                if(btn) {
+                    if(t === tab) {
+                        btn.className = "px-4 py-2 rounded-xl text-sm font-semibold transition-all bg-purple-600 text-white shadow-md";
+                    } else {
+                        btn.className = "px-4 py-2 rounded-xl text-sm font-medium text-zinc-400 hover:text-white transition-all";
+                    }
+                }
+            });
+
+            if (tab === 'home') {
+                document.getElementById('sec-home').classList.remove('hidden');
+                updateCounts();
+            } else {
+                document.getElementById('sec-space').classList.remove('hidden');
+                document.getElementById('space-title').innerText = spacesData[tab].title;
+                renderSpaceTracks(tab);
+            }
+        }
+
+        function updateCounts() {
+            Object.keys(spacesData).forEach(space => {
+                const count = tracks.filter(t => t.space === space).length;
+                const el = document.getElementById(`count-${space}`);
+                if(el) el.innerText = count;
+            });
+        }
+
+        function renderSpaceTracks(space) {
+            const container = document.getElementById('space-tracks-container');
+            const spaceTracks = tracks.filter(t => t.space === space);
+
+            if (spaceTracks.length === 0) {
+                container.innerHTML = `<div class="col-span-full py-16 text-center text-zinc-500 text-sm">Aucun morceau dans cet espace pour le moment. Ajoute-les via l'admin !</div>`;
+                return;
+            }
+
+            container.innerHTML = spaceTracks.map(t => `
+                <div class="glass p-4 rounded-2xl flex items-center justify-between border border-white/5 hover:border-purple-500/30 transition-all group">
+                    <div class="flex items-center space-x-4 min-w-0">
+                        <div class="w-14 h-14 rounded-xl overflow-hidden bg-zinc-800 flex-shrink-0 relative">
+                            <img src="${t.pp}" onerror="this.src='https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=150'" class="w-full h-full object-cover group-hover:scale-105 transition-transform" alt="PP">
+                        </div>
+                        <div class="min-w-0">
+                            <h4 class="font-bold text-white text-sm truncate">${t.title}</h4>
+                            <p class="text-xs text-zinc-400 truncate">${t.audio}</p>
+                        </div>
+                    </div>
+                    <button onclick="playTrack(${t.id})" class="w-10 h-10 rounded-full bg-purple-600 hover:bg-purple-500 flex items-center justify-center text-white shadow-md transition-transform hover:scale-105 flex-shrink-0 ml-3">
+                        <i class="fa-solid fa-play"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        // Lecture Audio
+        function playTrack(id) {
+            const track = tracks.find(t => t.id === id);
+            if(!track) return;
+
+            if(currentTrackId !== id) {
+                currentAudio.src = track.audio;
+                currentAudio.load();
+                currentTrackId = id;
+            }
+
+            currentAudio.play().then(() => {
+                isPlaying = true;
+                document.getElementById('audio-player-bar').classList.remove('hidden');
+                document.getElementById('player-title').innerText = track.title;
+                document.getElementById('player-space').innerText = spacesData[track.space].title;
+                document.getElementById('player-pp').src = track.pp;
+                document.getElementById('player-pp').classList.add('playing');
+                document.getElementById('play-icon').className = "fa-solid fa-pause";
+            }).catch(e => {
+                alert("Fichier audio introuvable dans le dossier GitHub : " + track.audio);
+            });
+        }
+
+        function togglePlay() {
+            if(!currentAudio.src) return;
+            if(isPlaying) {
+                currentAudio.pause();
+                isPlaying = false;
+                document.getElementById('play-icon').className = "fa-solid fa-play";
+                document.getElementById('player-pp').classList.remove('playing');
+            } else {
+                currentAudio.play();
+                isPlaying = true;
+                document.getElementById('play-icon').className = "fa-solid fa-pause";
+                document.getElementById('player-pp').classList.add('playing');
+            }
+        }
+
+        currentAudio.addEventListener('timeupdate', () => {
+            if(currentAudio.duration) {
+                const progress = (currentAudio.currentTime / currentAudio.duration) * 100;
+                document.getElementById('progress-bar').value = progress;
+                document.getElementById('current-time').innerText = formatTime(currentAudio.currentTime);
+                document.getElementById('duration').innerText = formatTime(currentAudio.duration);
+            }
+        });
+
+        currentAudio.addEventListener('ended', () => {
+            isPlaying = false;
+            document.getElementById('play-icon').className = "fa-solid fa-play";
+            document.getElementById('player-pp').classList.remove('playing');
+        });
+
+        function seekAudio(val) {
+            if(currentAudio.duration) {
+                currentAudio.currentTime = (val / 100) * currentAudio.duration;
+            }
+        }
+
+        function setVolume(val) {
+            currentAudio.volume = val;
+        }
+
+        function formatTime(sec) {
+            const m = Math.floor(sec / 60);
+            const s = Math.floor(sec % 60);
+            return `${m}:${s < 10 ? '0' : ''}${s}`;
+        }
+
+        // Admin Modal & Login (papedupo06)
+        function openAdminModal() {
+            document.getElementById('admin-modal').classList.remove('hidden');
+        }
+
+        function closeAdminModal() {
+            document.getElementById('admin-modal').classList.add('hidden');
+        }
+
+        function tryLogin() {
+            const input = document.getElementById('admin-pass-input').value.trim().toLowerCase();
+            const correct = ['p','a','p','e','d','u','p','o','0','6'].join('');
+            if(input === correct) {
+                document.getElementById('admin-login-view').classList.add('hidden');
+                document.getElementById('admin-panel-view').classList.remove('hidden');
+                renderAdminList();
+                document.getElementById('admin-pass-input').value = '';
+            } else {
+                alert("Mot de passe incorrect !");
+            }
+        }
+
+        function logoutAdmin() {
+            document.getElementById('admin-login-view').classList.remove('hidden');
+            document.getElementById('admin-panel-view').classList.add('hidden');
+        }
+
+        function addNewTrack() {
+            const space = document.getElementById('up-space').value;
+            const title = document.getElementById('up-title').value.trim();
+            const audio = document.getElementById('up-audio').value.trim();
+            const pp = document.getElementById('up-pp').value.trim();
+
+            if(!title || !audio || !pp) {
+                alert("Veuillez remplir tous les champs !");
+                return;
+            }
+
+            const newTrack = { id: Date.now(), space, title, audio, pp };
+            tracks.push(newTrack);
+            localStorage.setItem('pol_tracks', JSON.stringify(tracks));
+
+            document.getElementById('up-title').value = '';
+            document.getElementById('up-audio').value = '';
+            document.getElementById('up-pp').value = '';
+
+            renderAdminList();
+            updateCounts();
+            alert("Morceau ajouté avec succès !");
+        }
+
+        function deleteTrack(id) {
+            tracks = tracks.filter(t => t.id !== id);
+            localStorage.setItem('pol_tracks', JSON.stringify(tracks));
+            renderAdminList();
+            updateCounts();
+        }
+
+        function renderAdminList() {
+            document.getElementById('total-tracks-count').innerText = tracks.length;
+            const list = document.getElementById('admin-tracks-list');
+            if(tracks.length === 0) {
+                list.innerHTML = `<p class="text-zinc-500">Aucun morceau.</p>`;
+                return;
+            }
+            list.innerHTML = tracks.map(t => `
+                <div class="flex items-center justify-between bg-zinc-900 p-2 rounded-xl border border-white/5">
+                    <span class="truncate text-white font-medium">${t.title} (${t.space})</span>
+                    <button onclick="deleteTrack(${t.id})" class="text-red-400 hover:text-red-300 ml-2"><i class="fa-solid fa-trash"></i></button>
+                </div>
+            `).join('');
+        }
+
+        // Initialisation
+        updateCounts();
+    </script>
+</body>
+</html>
