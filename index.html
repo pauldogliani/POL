@@ -204,6 +204,18 @@
                     <button onclick="logoutAdmin()" class="text-xs text-red-400 hover:underline">Déconnexion</button>
                 </div>
 
+                <!-- BOUTON SYNCHRO GITHUB -->
+                <div class="bg-purple-950/40 border border-purple-500/30 p-3 rounded-2xl flex items-center justify-between">
+                    <div>
+                        <h4 class="text-xs font-bold text-white">Mettre à jour sur GitHub</h4>
+                        <p class="text-[11px] text-zinc-400">Télécharge le fichier mis à jour pour ton téléphone.</p>
+                    </div>
+                    <button onclick="exportUpdatedIndex()" class="px-3 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-semibold text-xs transition-all shadow-md flex items-center space-x-1.5 flex-shrink-0">
+                        <i class="fa-solid fa-download"></i>
+                        <span>Télécharger index.html</span>
+                    </button>
+                </div>
+
                 <div class="space-y-4 bg-zinc-900/50 p-4 rounded-2xl border border-white/5">
                     <h4 class="font-bold text-sm text-white">Ajouter un nouveau morceau</h4>
                     <div>
@@ -221,11 +233,11 @@
                         <input type="text" id="up-title" placeholder="Ex: Beat Trap 01" class="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-white/10 text-white text-sm">
                     </div>
                     <div>
-                        <label class="text-xs text-zinc-400 block mb-1">Nom du fichier Audio (dans ton dossier GitHub ex: son.mp3)</label>
+                        <label class="text-xs text-zinc-400 block mb-1">Nom du fichier Audio (ex: son.mp3)</label>
                         <input type="text" id="up-audio" placeholder="mon_beat.mp3" class="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-white/10 text-white text-sm">
                     </div>
                     <div>
-                        <label class="text-xs text-zinc-400 block mb-1">Nom de l'image PP (dans ton dossier GitHub ex: pp.jpg)</label>
+                        <label class="text-xs text-zinc-400 block mb-1">Nom de l'image PP (ex: pp.jpg)</label>
                         <input type="text" id="up-pp" placeholder="ma_pp.jpg" class="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-white/10 text-white text-sm">
                     </div>
                     <button onclick="addNewTrack()" class="w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-semibold text-sm transition-all shadow-md">Enregistrer le morceau</button>
@@ -233,7 +245,7 @@
 
                 <div class="space-y-2">
                     <h4 class="font-bold text-sm text-white">Morceaux enregistrés (<span id="total-tracks-count">0</span>)</h4>
-                    <div id="admin-tracks-list" class="max-h-40 overflow-y-auto space-y-2 text-xs">
+                    <div id="admin-tracks-list" class="max-h-36 overflow-y-auto space-y-2 text-xs">
                         <!-- Liste admin -->
                     </div>
                 </div>
@@ -242,7 +254,7 @@
         </div>
     </div>
 
-    <!-- LOGIQUE JAVASCRIPT -->
+    <!-- LOGIQUE JAVASCRIPT (LES MORCEAUX GOUVERNES PAR DÉFAUT CI-DESSOUS) -->
     <script>
         const spacesData = {
             rock: { title: "Premier enregistrement téléphone 2024 Rock", icon: "fa-guitar" },
@@ -252,10 +264,10 @@
             romantic: { title: "Mélancolie ou romantique", icon: "fa-heart" }
         };
 
-        // Données par défaut ou récupérées du localStorage
+        // 🌟 LISTE OFFICIELLE DES MORCEAUX (Modifiable dynamiquement ou via le bouton de téléchargement)
         let tracks = JSON.parse(localStorage.getItem('pol_tracks')) || [
-            { id: 1, space: 'rock', title: 'Exemple Rock 2024', audio: 'rock1.mp3', pp: 'rock1.jpg' },
-            { id: 2, space: 'hiphop', title: 'Exemple Beat 808', audio: 'hiphop1.mp3', pp: 'hiphop1.jpg' }
+            // MODIFIE OU AJOUTE TES MORCEAUX ICI DIRECTEMENT SI TU VEUX QU'ILS APPARAISSENT PARTOUT
+            // { id: 1, space: 'rock', title: 'Mon Premier Son', audio: 'son1.mp3', pp: 'pp1.jpg' }
         ];
 
         let currentAudio = new Audio();
@@ -301,7 +313,7 @@
             const spaceTracks = tracks.filter(t => t.space === space);
 
             if (spaceTracks.length === 0) {
-                container.innerHTML = `<div class="col-span-full py-16 text-center text-zinc-500 text-sm">Aucun morceau dans cet espace pour le moment. Ajoute-les via l'admin !</div>`;
+                container.innerHTML = `<div class="col-span-full py-16 text-center text-zinc-500 text-sm">Aucun morceau dans cet espace. Ajoute-les via l'admin !</div>`;
                 return;
             }
 
@@ -441,7 +453,7 @@
 
             renderAdminList();
             updateCounts();
-            alert("Morceau ajouté avec succès !");
+            alert("Morceau ajouté ! Pense à cliquer sur 'Télécharger index.html' pour le mettre sur ton GitHub.");
         }
 
         function deleteTrack(id) {
@@ -464,6 +476,24 @@
                     <button onclick="deleteTrack(${t.id})" class="text-red-400 hover:text-red-300 ml-2"><i class="fa-solid fa-trash"></i></button>
                 </div>
             `).join('');
+        }
+
+        // Fonction magique : Télécharge le fichier index.html avec tous tes sons intégrés dedans
+        function exportUpdatedIndex() {
+            const htmlContent = document.documentElement.outerHTML;
+            // On injecte dynamiquement la liste actuelle des tracks dans le script du fichier exporté
+            const cleanHtml = htmlContent.replace(/let tracks = JSON\.parse\(localStorage\.getItem\('pol_tracks'\)\) \|\| \[[\s\S]*?\];/, `let tracks = ${JSON.stringify(tracks, null, 4)};`);
+            
+            const blob = new Blob([cleanHtml], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'index.html';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            alert("Fichier index.html téléchargé ! Remplace-le simplement dans ton dépôt GitHub, et ton téléphone affichera tout instantanément !");
         }
 
         // Initialisation
