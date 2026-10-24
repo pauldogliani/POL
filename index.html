@@ -3,501 +3,933 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>POL - Music Studio</title>
+    <title>POL</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Syne, Space Grotesk, JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
     <script>
         tailwind.config = {
             darkMode: 'class',
             theme: {
                 extend: {
-                    colors: {
-                        darkBg: '#09090b',
-                        cardBg: '#121216',
-                        accent: '#8b5cf6',
-                        accentHover: '#7c3aed'
+                    fontFamily: {
+                        display: ['Syne', 'sans-serif'],
+                        sans: ['Space Grotesk', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    animation: {
+                        'spin-slow': 'spin 8s linear infinite',
+                        'pulse-glow': 'pulseGlow 4s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        pulseGlow: {
+                            '0%, 100%': { opacity: 0.4, transform: 'scale(1)' },
+                            '50%': { opacity: 0.75, transform: 'scale(1.06)' },
+                        }
                     }
                 }
             }
         }
     </script>
-    <!-- FontAwesome & Google Fonts -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #09090b; color: #f4f4f5; }
-        .glass { background: rgba(18, 18, 22, 0.7); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.08); }
-        .vinyl-spin { animation: spin 4s linear infinite; animation-play-state: paused; }
-        .vinyl-spin.playing { animation-play-state: running; }
-        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-    </style>
+        :root {
+            --accent-primary: #a855f7;
+            --accent-secondary: #f59e0b;
+            --accent-glow: rgba(168, 85, 247, 0.28);
+        }
+
+        body {
+            background-color: #060609;
+            color: #f8fafc;
+            overflow-x: hidden;
+        }
+
+        .bg-noise {
+            background-image: radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 0);
+            background-size: 24px 24px;
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #060609;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1e1e2d;
+            border-radius: 9999px;
+        }
+
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        .glass-panel {
+            background: rgba(14, 14, 22, 0.72);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+        }
+
+        .glass-card {
+            background: linear-gradient(145deg, rgba(22, 22, 34, 0.78) 0%, rgba(10, 10, 16, 0.88) 100%);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .glass-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--accent-primary);
+            box-shadow: 0 18px 36px -12px var(--accent-glow);
+        }
+
+        .glass-card.playing-card {
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 30px -5px var(--accent-glow);
+        }
+
+        .vinyl-disc {
+            background: 
+                radial-gradient(circle, #0e0e14 18%, transparent 19%),
+                repeating-radial-gradient(circle, #0c0c10 0%, #0c0c10 2px, #191922 3px, #0c0c10 4px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.85);
+        }
+
+        @keyframes cardEnter {
+            from { opacity: 0; transform: translateY(16px) scale(0.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .animate-card-enter {
+            animation: cardEnter 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        input[type=range] {
+            -webkit-appearance: none;
+            background: transparent;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 12px;
+            width: 12px;
+            border-radius: 50%;
+            background: #ffffff;
+            cursor: pointer;
+            margin-top: -4px;
+            box-shadow: 0 0 8px rgba(255,255,255,0.8);
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            cursor: pointer;
+            background: rgba(255, 255, 255, 0.14);
+            border-radius: 999px;
+        }
+
+        @keyframes eqBar1 { 0%, 100% { height: 25%; } 50% { height: 95%; } }
+        @keyframes eqBar2 { 0%, 100% { height: 85%; } 33% { height: 20%; } 66% { height: 100%; } }
+        @keyframes eqBar3 { 0%, 100% { height: 40%; } 25% { height: 100%; } 75% { height: 30%; } }
+        .eq-bar-1 { animation: eqBar1 0.65s ease-in-out infinite; }
+        .eq-bar-2 { animation: eqBar2 0.5s ease-in-out infinite; }
+        .eq-bar-3 { animation: eqBar3 0.75s ease-in-out infinite; }
+    #tracks-grid h3{font-size:clamp(1.2rem,2.2vw,1.8rem);white-space:normal;overflow-wrap:anywhere;line-height:1.2}
+#tracks-grid article>div>div:last-child{align-items:flex-start}
+#tracks-grid article button.absolute{opacity:1;background:transparent;align-items:flex-end;justify-content:flex-end;padding:1rem}
+#tracks-grid article button.absolute>div{width:4.5rem;height:4.5rem}
+#tracks-grid article span.absolute{font-size:12px}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent-primary);outline-offset:4px}
+@media(max-width:767px){body{padding-bottom:180px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+</style>
 </head>
-<body class="min-h-screen flex flex-col selection:bg-purple-500 selection:text-white">
+<body class="min-h-screen flex flex-col justify-between pb-28 selection:bg-purple-500 selection:text-white relative">
 
-    <!-- HEADER -->
-    <header class="sticky top-0 z-50 glass border-b border-white/10 px-6 py-4 flex items-center justify-between">
-        <div class="flex items-center space-x-3 cursor-pointer" onclick="switchTab('home')">
-            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-purple-600 to-indigo-500 flex items-center justify-center shadow-lg shadow-purple-500/30">
-                <i class="fa-solid fa-waveform text-white text-lg"></i>
-            </div>
-            <span class="text-2xl font-extrabold tracking-wider bg-gradient-to-r from-white via-zinc-200 to-zinc-400 bg-clip-text text-transparent">POL</span>
-        </div>
+    <!-- EMBEDDED REQUESTS MANIFEST (Permet de stocker en dur les demandes lors de l'export d'index.html) -->
+    <script id="pol-embedded-requests" type="application/json">[
+  {
+    "id": "pol-track-1",
+    "title": "2026 / 2",
+    "space": "accapella",
+    "audioFile": "2026_2_KLICKAUD.mp3",
+    "coverFile": "00b5cfad7cbe80c92cf78f9de7d1c808.jpg"
+  },
+  {
+    "id": "pol-track-2",
+    "title": "2026 / 6",
+    "space": "accapella",
+    "audioFile": "2026_6_KLICKAUD.mp3",
+    "coverFile": "06fbdfa28d8eb70a389ebe1c1db040ee.jpg"
+  },
+  {
+    "id": "pol-track-3",
+    "title": "2026 / Interlude",
+    "space": "accapella",
+    "audioFile": "2026_INTERLUDE_KLICKAUD.mp3",
+    "coverFile": "263ca9616d7f066fd6613c6432ee7efa.jpg"
+  },
+  {
+    "id": "pol-track-4",
+    "title": "2026 / Intro",
+    "space": "hiphop",
+    "audioFile": "2026_INTRO_KLICKAUD.mp3",
+    "coverFile": "32c17d62deba1477b7ba54ffbd33b09e.jpg"
+  },
+  {
+    "id": "pol-track-5",
+    "title": "2026 / Outro",
+    "space": "rock",
+    "audioFile": "2026_OUTRO_KLICKAUD.mp3",
+    "coverFile": "33c9af846e4f8a58622a733b2621a4f1.jpg"
+  },
+  {
+    "id": "pol-track-6",
+    "title": "BLUEBERRY ECHO CHILD",
+    "space": "electro",
+    "audioFile": "BLUEBERRY_ECHO_CHILD_KLICKAUD.mp3",
+    "coverFile": "389222eecbdf4dd4c5ac351e5fb8a059.jpg"
+  },
+  {
+    "id": "pol-track-7",
+    "title": "donda",
+    "space": "hiphop",
+    "audioFile": "donda.mp3",
+    "coverFile": "cover-donda.png"
+  },
+  {
+    "id": "pol-track-8",
+    "title": "FAST",
+    "space": "hiphop",
+    "audioFile": "FAST_KLICKAUD.mp3",
+    "coverFile": "5743775adaf52411ac755971c67e77eb.jpg"
+  },
+  {
+    "id": "pol-track-9",
+    "title": "intro",
+    "space": "hiphop",
+    "audioFile": "intro.mp3",
+    "coverFile": "5fc3c0e9337f8a4f444245926c5ac952.jpg"
+  },
+  {
+    "id": "pol-track-10",
+    "title": "jik",
+    "space": "hiphop",
+    "audioFile": "jik.mp3",
+    "coverFile": "cover-jik.png"
+  },
+  {
+    "id": "pol-track-11",
+    "title": "LOWKEY WAVES",
+    "space": "hiphop",
+    "audioFile": "LOWKEY_WAVES_KLICKAUD.mp3",
+    "coverFile": "671ffec3beb3fef22dd5c52c37620e21.jpg"
+  },
+  {
+    "id": "pol-track-12",
+    "title": "mbdtf-02",
+    "space": "hiphop",
+    "audioFile": "mbdtf-02.mp3",
+    "coverFile": "6fc6319b4969d63a391f43fa558b5335.jpg"
+  },
+  {
+    "id": "pol-track-13",
+    "title": "noe",
+    "space": "hiphop",
+    "audioFile": "noe.mp3",
+    "coverFile": "cover-noe.png"
+  },
+  {
+    "id": "pol-track-14",
+    "title": "Old Jacket",
+    "space": "jazz",
+    "audioFile": "Old_Jacket_KLICKAUD.mp3",
+    "coverFile": "7e0c8c33a0c17e6efa7a8f22df6b77e8.jpg"
+  },
+  {
+    "id": "pol-track-15",
+    "title": "PROJET ROCK",
+    "space": "rock",
+    "audioFile": "PROJET-ROCK.mp3",
+    "coverFile": "a95ed31b3b6266157014cf1ba9ad1097.jpg"
+  },
+  {
+    "id": "pol-track-16",
+    "title": "TAPE MACHINE",
+    "space": "electro",
+    "audioFile": "TAPE_MACHINE_KLICKAUD.mp3",
+    "coverFile": "cover-case.png"
+  },
+  {
+    "id": "pol-track-17",
+    "title": "TRIP",
+    "space": "hiphop",
+    "audioFile": "TRIP_KLICKAUD.mp3",
+    "coverFile": "f7b8ad7307d0b13642528c3c773c2094.jpg"
+  },
+  {
+    "id": "pol-track-18",
+    "title": "untitled2",
+    "space": "romantic",
+    "audioFile": "untitled2.mp3",
+    "coverFile": "cover-untitled.png"
+  }
+]</script>
 
-        <!-- NAVIGATION ESPACES -->
-        <nav class="hidden md:flex items-center space-x-2 bg-zinc-900/80 p-1.5 rounded-2xl border border-white/5">
-            <button onclick="switchTab('home')" id="nav-home" class="px-4 py-2 rounded-xl text-sm font-semibold transition-all bg-purple-600 text-white shadow-md">Accueil</button>
-            <button onclick="switchTab('rock')" id="nav-rock" class="px-4 py-2 rounded-xl text-sm font-medium text-zinc-400 hover:text-white transition-all">Rock 2024</button>
-            <button onclick="switchTab('hiphop')" id="nav-hiphop" class="px-4 py-2 rounded-xl text-sm font-medium text-zinc-400 hover:text-white transition-all">Hip-Hop</button>
-            <button onclick="switchTab('jazz')" id="nav-jazz" class="px-4 py-2 rounded-xl text-sm font-medium text-zinc-400 hover:text-white transition-all">Jazz</button>
-            <button onclick="switchTab('acapella')" id="nav-acapella" class="px-4 py-2 rounded-xl text-sm font-medium text-zinc-400 hover:text-white transition-all">Accapella</button>
-            <button onclick="switchTab('romantic')" id="nav-romantic" class="px-4 py-2 rounded-xl text-sm font-medium text-zinc-400 hover:text-white transition-all">Romantique</button>
-        </nav>
-
-        <!-- ADMIN BUTTON -->
-        <button onclick="openAdminModal()" class="flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-zinc-800/80 hover:bg-zinc-700 text-sm font-semibold border border-white/10 transition-all shadow-md hover:scale-105">
-            <i class="fa-solid fa-lock text-purple-400"></i>
-            <span>Admin</span>
-        </button>
-    </header>
-
-    <!-- MOBILE SUBNAV -->
-    <div class="md:hidden flex overflow-x-auto space-x-2 p-3 bg-zinc-900/60 border-b border-white/5 no-scrollbar">
-        <button onclick="switchTab('home')" id="mob-nav-home" class="px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap bg-purple-600 text-white">Accueil</button>
-        <button onclick="switchTab('rock')" id="mob-nav-rock" class="px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap bg-zinc-800 text-zinc-300">Rock</button>
-        <button onclick="switchTab('hiphop')" id="mob-nav-hiphop" class="px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap bg-zinc-800 text-zinc-300">Hip-Hop</button>
-        <button onclick="switchTab('jazz')" id="mob-nav-jazz" class="px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap bg-zinc-800 text-zinc-300">Jazz</button>
-        <button onclick="switchTab('acapella')" id="mob-nav-acapella" class="px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap bg-zinc-800 text-zinc-300">Accapella</button>
-        <button onclick="switchTab('romantic')" id="mob-nav-romantic" class="px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap bg-zinc-800 text-zinc-300">Romantique</button>
+    <!-- Ambient Background Glows -->
+    <div class="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+        <div id="ambient-orb-1" class="absolute -top-40 -left-40 w-[520px] h-[520px] rounded-full blur-[150px] opacity-35 transition-all duration-1000" style="background: radial-gradient(circle, #a855f7, transparent 70%);"></div>
+        <div id="ambient-orb-2" class="absolute top-1/3 -right-40 w-[480px] h-[480px] rounded-full blur-[150px] opacity-25 transition-all duration-1000" style="background: radial-gradient(circle, #f59e0b, transparent 70%);"></div>
+        <div id="ambient-orb-3" class="absolute -bottom-48 left-1/3 w-[560px] h-[400px] rounded-full blur-[160px] opacity-20 transition-all duration-1000" style="background: radial-gradient(circle, #ec4899, transparent 70%);"></div>
+        <div class="absolute inset-0 bg-noise opacity-60"></div>
     </div>
 
-    <!-- MAIN CONTENT -->
-    <main class="flex-1 max-w-7xl w-full mx-auto px-6 py-8 pb-32">
-        
-        <!-- SECTION ACCUEIL -->
-        <section id="sec-home" class="space-y-12">
-            <div class="text-center space-y-4 py-8">
-                <h1 class="text-5xl md:text-7xl font-extrabold tracking-tight bg-gradient-to-r from-white via-zinc-200 to-purple-400 bg-clip-text text-transparent">POL ARCHIVES</h1>
-                <p class="text-zinc-400 text-lg max-w-xl mx-auto">Sélectionne un espace ci-dessous pour découvrir les productions.</p>
+    <!-- Top Navigation Bar -->
+    <header class="sticky top-0 z-30 backdrop-blur-xl bg-[#060609]/80 border-b border-white/10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 py-3.5 flex items-center justify-between gap-4">
+            <!-- Brand -->
+            <div class="flex items-center gap-3 cursor-pointer group" onclick="window.switchSpace('all')">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600 to-amber-500 p-[1px] shadow-lg shadow-purple-500/20 group-hover:scale-105 transition-transform">
+                    <div class="w-full h-full bg-[#09090f] rounded-xl flex items-center justify-center">
+                        <i data-lucide="disc-3" class="w-5 h-5 text-white group-hover:rotate-90 transition-transform duration-500"></i>
+                    </div>
+                </div>
+                <span class="font-display font-extrabold text-2xl tracking-wider text-white">POL</span>
             </div>
 
-            <!-- GRID DES ESPACES -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                <div onclick="switchTab('rock')" class="group relative h-64 rounded-3xl overflow-hidden cursor-pointer border border-white/10 transition-all hover:scale-[1.02] hover:border-purple-500/50 shadow-xl">
-                    <div class="absolute inset-0 bg-gradient-to-t from-red-950/90 via-zinc-950/40 to-transparent z-10"></div>
-                    <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(239,68,68,0.2),transparent_50%)]"></div>
-                    <div class="absolute bottom-6 left-6 z-20 space-y-1">
-                        <div class="w-10 h-10 rounded-xl bg-red-500/20 flex items-center justify-center border border-red-500/30 text-red-400 mb-3 group-hover:scale-110 transition-transform"><i class="fa-solid fa-guitar"></i></div>
-                        <h2 class="text-2xl font-bold text-white">Premier enregistrement téléphone 2024 Rock</h2>
-                        <p class="text-xs text-zinc-400"><span id="count-rock">0</span> morceau(x)</p>
+            <!-- Add / Upload Button -->
+            <button 
+                onclick="window.openAdminPortal()"
+                class="relative group overflow-hidden rounded-full p-[1px] focus:outline-none"
+            >
+                <span class="absolute inset-0 bg-gradient-to-r from-purple-500 via-amber-500 to-rose-500 rounded-full opacity-75 group-hover:opacity-100 transition-opacity"></span>
+                <div class="relative bg-[#0c0c14] hover:bg-[#141422] text-white px-4 py-2 rounded-full flex items-center gap-2 text-xs sm:text-sm font-medium transition-colors">
+                    <i data-lucide="lock" id="admin-lock-icon" class="w-3.5 h-3.5 text-amber-400"></i>
+                    <span>Ajouter</span>
+                </div>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="relative z-10 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 pt-6 pb-12 flex-grow">
+
+        <!-- Spaces Navigation Tabs -->
+        <nav aria-label="Espaces" class="mb-6">
+            <div class="flex items-center gap-2 overflow-x-auto pb-2 no-scrollbar" id="spaces-tabs-container"></div>
+        </nav>
+
+        <!-- Minimalist Space Header (Title, Lecture/Ajouter & Vinyl Showcase) -->
+        <section class="relative rounded-3xl glass-panel p-6 sm:p-8 mb-8 overflow-hidden border border-white/10">
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-6">
+                <div class="space-y-5 text-center sm:text-left">
+                    <h1 id="hero-title" class="font-display font-extrabold text-2xl sm:text-4xl lg:text-5xl tracking-tight text-white leading-tight transition-all duration-300">
+                        POL
+                    </h1>
+                    <div class="flex flex-wrap items-center justify-center sm:justify-start gap-3">
+                        <button onclick="window.playSpaceTracks()" class="px-5 py-2.5 rounded-full bg-white text-black font-semibold text-sm flex items-center gap-2 hover:scale-105 active:scale-95 transition-all shadow-lg shadow-white/10">
+                            <i data-lucide="play" class="w-4 h-4 fill-current"></i>
+                            <span>Lecture</span>
+                        </button>
+                        <button onclick="window.openAdminPortal()" class="px-5 py-2.5 rounded-full bg-white/5 hover:bg-white/10 text-zinc-200 border border-white/10 font-medium text-sm flex items-center gap-2 transition-all">
+                            <i data-lucide="plus" class="w-4 h-4 text-amber-400"></i>
+                            <span>Ajouter</span>
+                        </button>
                     </div>
                 </div>
 
-                <div onclick="switchTab('hiphop')" class="group relative h-64 rounded-3xl overflow-hidden cursor-pointer border border-white/10 transition-all hover:scale-[1.02] hover:border-purple-500/50 shadow-xl">
-                    <div class="absolute inset-0 bg-gradient-to-t from-purple-950/90 via-zinc-950/40 to-transparent z-10"></div>
-                    <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(168,85,247,0.2),transparent_50%)]"></div>
-                    <div class="absolute bottom-6 left-6 z-20 space-y-1">
-                        <div class="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center border border-purple-500/30 text-purple-400 mb-3 group-hover:scale-110 transition-transform"><i class="fa-solid fa-headphones"></i></div>
-                        <h2 class="text-2xl font-bold text-white">Hip-Hop</h2>
-                        <p class="text-xs text-zinc-400"><span id="count-hiphop">0</span> morceau(x)</p>
+                <!-- Animated Vinyl Showcase Widget -->
+                <div class="relative w-32 h-32 sm:w-40 sm:h-40 flex items-center justify-center shrink-0">
+                    <div id="hero-vinyl-glow" class="absolute inset-0 rounded-full blur-2xl opacity-45 animate-pulse-glow transition-colors duration-700" style="background: conic-gradient(from 0deg, #a855f7, #f59e0b, #ec4899, #a855f7);"></div>
+                    <div id="hero-vinyl" class="relative w-28 h-28 sm:w-36 sm:h-36 rounded-full vinyl-disc flex items-center justify-center border border-white/15">
+                        <img id="hero-vinyl-cover" src="./00b5cfad7cbe80c92cf78f9de7d1c808.jpg" alt="POL" class="w-12 h-12 sm:w-16 sm:h-16 rounded-full object-cover border border-white/20">
+                        <div class="absolute w-3 h-3 rounded-full bg-[#060609] border border-white/30"></div>
                     </div>
                 </div>
-
-                <div onclick="switchTab('jazz')" class="group relative h-64 rounded-3xl overflow-hidden cursor-pointer border border-white/10 transition-all hover:scale-[1.02] hover:border-amber-500/50 shadow-xl">
-                    <div class="absolute inset-0 bg-gradient-to-t from-amber-950/90 via-zinc-950/40 to-transparent z-10"></div>
-                    <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(245,158,11,0.2),transparent_50%)]"></div>
-                    <div class="absolute bottom-6 left-6 z-20 space-y-1">
-                        <div class="w-10 h-10 rounded-xl bg-amber-500/20 flex items-center justify-center border border-amber-500/30 text-amber-400 mb-3 group-hover:scale-110 transition-transform"><i class="fa-solid fa-sax-hot"></i></div>
-                        <h2 class="text-2xl font-bold text-white">Jazz</h2>
-                        <p class="text-xs text-zinc-400"><span id="count-jazz">0</span> morceau(x)</p>
-                    </div>
-                </div>
-
-                <div onclick="switchTab('acapella')" class="group relative h-64 rounded-3xl overflow-hidden cursor-pointer border border-white/10 transition-all hover:scale-[1.02] hover:border-cyan-500/50 shadow-xl">
-                    <div class="absolute inset-0 bg-gradient-to-t from-cyan-950/90 via-zinc-950/40 to-transparent z-10"></div>
-                    <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(6,182,212,0.2),transparent_50%)]"></div>
-                    <div class="absolute bottom-6 left-6 z-20 space-y-1">
-                        <div class="w-10 h-10 rounded-xl bg-cyan-500/20 flex items-center justify-center border border-cyan-500/30 text-cyan-400 mb-3 group-hover:scale-110 transition-transform"><i class="fa-solid fa-microphone-lines"></i></div>
-                        <h2 class="text-2xl font-bold text-white">Avec Accapella</h2>
-                        <p class="text-xs text-zinc-400"><span id="count-acapella">0</span> morceau(x)</p>
-                    </div>
-                </div>
-
-                <div onclick="switchTab('romantic')" class="group relative h-64 rounded-3xl overflow-hidden cursor-pointer border border-white/10 transition-all hover:scale-[1.02] hover:border-pink-500/50 shadow-xl sm:col-span-2 lg:col-span-1">
-                    <div class="absolute inset-0 bg-gradient-to-t from-pink-950/90 via-zinc-950/40 to-transparent z-10"></div>
-                    <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(236,72,153,0.2),transparent_50%)]"></div>
-                    <div class="absolute bottom-6 left-6 z-20 space-y-1">
-                        <div class="w-10 h-10 rounded-xl bg-pink-500/20 flex items-center justify-center border border-pink-500/30 text-pink-400 mb-3 group-hover:scale-110 transition-transform"><i class="fa-solid fa-heart"></i></div>
-                        <h2 class="text-2xl font-bold text-white">Mélancolie ou romantique</h2>
-                        <p class="text-xs text-zinc-400"><span id="count-romantic">0</span> morceau(x)</p>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- SECTION DYNAMIQUE DES ESPACES -->
-        <section id="sec-space" class="hidden space-y-8">
-            <div class="flex items-center justify-between border-b border-white/10 pb-6">
-                <div>
-                    <button onclick="switchTab('home')" class="text-xs text-purple-400 hover:text-purple-300 font-semibold mb-2 flex items-center space-x-1"><i class="fa-solid fa-arrow-left"></i><span>Retour accueil</span></button>
-                    <h2 id="space-title" class="text-3xl font-extrabold text-white">Espace</h2>
-                </div>
-            </div>
-            <div id="space-tracks-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                <!-- Les morceaux injectés ici -->
             </div>
         </section>
 
+        <!-- Track Cards Grid -->
+        <section>
+            <div id="tracks-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-6 lg:gap-8"></div>
+
+            <!-- Minimal Empty State -->
+            <div id="empty-state" class="hidden glass-panel rounded-3xl p-12 text-center max-w-sm mx-auto my-6 border border-dashed border-white/15">
+                <button onclick="window.openAdminPortal()" class="px-6 py-3 rounded-full bg-white text-black text-sm font-semibold inline-flex items-center gap-2 hover:scale-105 transition">
+                    <i data-lucide="plus" class="w-4 h-4"></i>
+                    <span>Ajouter</span>
+                </button>
+            </div>
+        </section>
     </main>
 
-    <!-- PLAYER FIXE EN BAS -->
-    <footer id="audio-player-bar" class="fixed bottom-0 left-0 right-0 glass border-t border-white/10 px-6 py-4 z-40 hidden">
-        <div class="max-w-7xl mx-auto flex items-center justify-between gap-4">
-            <div class="flex items-center space-x-4 min-w-0">
-                <div class="relative w-14 h-14 rounded-xl overflow-hidden border border-white/10 flex-shrink-0 bg-zinc-800">
-                    <img id="player-pp" src="" class="w-full h-full object-cover vinyl-spin" alt="PP">
+    <!-- Persistent Bottom Audio Player -->
+    <footer class="fixed bottom-0 inset-x-0 z-40 backdrop-blur-2xl bg-[#07070c]/95 border-t border-white/10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+            <div class="grid grid-cols-1 md:grid-cols-12 items-center gap-3 md:gap-6">
+                
+                <!-- Currently Playing Track -->
+                <div class="md:col-span-4 flex items-center gap-3 min-w-0">
+                    <div class="relative w-12 h-12 rounded-xl overflow-hidden shrink-0 border border-white/15 bg-zinc-900">
+                        <img id="player-cover" src="./00b5cfad7cbe80c92cf78f9de7d1c808.jpg" alt="PP" class="w-full h-full object-cover">
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <h4 id="player-title" class="font-display font-bold text-sm text-white truncate">POL</h4>
+                        <span id="player-space-badge" class="text-xs font-mono text-purple-400 truncate block">POL</span>
+                    </div>
                 </div>
-                <div class="min-w-0">
-                    <h4 id="player-title" class="font-bold text-white truncate text-sm">Nom du morceau</h4>
-                    <p id="player-space" class="text-xs text-zinc-400 truncate">Espace</p>
-                </div>
-            </div>
 
-            <div class="flex flex-col items-center flex-1 max-w-md px-4">
-                <div class="flex items-center space-x-6 mb-1">
-                    <button onclick="togglePlay()" id="play-btn" class="w-10 h-10 rounded-full bg-purple-600 hover:bg-purple-500 flex items-center justify-center text-white shadow-lg transition-transform hover:scale-105"><i class="fa-solid fa-play" id="play-icon"></i></button>
-                </div>
-                <div class="w-full flex items-center space-x-3 text-xs text-zinc-400">
-                    <span id="current-time">0:00</span>
-                    <input type="range" id="progress-bar" value="0" max="100" class="w-full accent-purple-500 cursor-pointer h-1.5 bg-zinc-800 rounded-lg" oninput="seekAudio(this.value)">
-                    <span id="duration">0:00</span>
-                </div>
-            </div>
+                <!-- Controls & Seek -->
+                <div class="md:col-span-5 flex flex-col items-center justify-center gap-1">
+                    <div class="flex items-center gap-5">
+                        <button onclick="window.prevTrack()" class="text-zinc-400 hover:text-white transition p-1">
+                            <i data-lucide="skip-back" class="w-4 h-4"></i>
+                        </button>
+                        <button id="master-play-btn" onclick="window.togglePlay()" class="w-10 h-10 rounded-full bg-white text-black flex items-center justify-center hover:scale-105 active:scale-95 transition">
+                            <i data-lucide="play" id="master-play-icon" class="w-4 h-4 fill-current ml-0.5"></i>
+                        </button>
+                        <button onclick="window.nextTrack()" class="text-zinc-400 hover:text-white transition p-1">
+                            <i data-lucide="skip-forward" class="w-4 h-4"></i>
+                        </button>
+                    </div>
 
-            <div class="flex items-center space-x-3">
-                <i class="fa-solid fa-volume-high text-zinc-400 text-sm"></i>
-                <input type="range" min="0" max="1" step="0.05" value="1" class="w-20 accent-purple-500 cursor-pointer h-1.5 bg-zinc-800 rounded-lg" oninput="setVolume(this.value)">
+                    <div class="w-full flex items-center gap-2.5">
+                        <span id="player-current-time" class="text-[10px] font-mono text-zinc-400 w-8 text-right">0:00</span>
+                        <div class="relative flex-1 flex items-center">
+                            <input type="range" id="player-seek" min="0" max="100" value="0" step="0.1" class="w-full z-10">
+                            <div id="player-progress-fill" class="absolute left-0 top-1/2 -translate-y-1/2 h-1 rounded-full bg-gradient-to-r from-purple-500 to-amber-400 pointer-events-none" style="width: 0%;"></div>
+                        </div>
+                        <span id="player-duration" class="text-[10px] font-mono text-zinc-400 w-8">0:00</span>
+                    </div>
+                </div>
+
+                <!-- Visualizer & Volume -->
+                <div class="hidden md:flex md:col-span-3 items-center justify-end gap-3">
+                    <div class="bg-white/5 border border-white/10 rounded-xl px-2.5 py-1 flex items-center">
+                        <canvas id="visualizer-canvas" width="88" height="24" class="w-22 h-6"></canvas>
+                    </div>
+                    <div class="flex items-center gap-2 w-24">
+                        <button onclick="window.toggleMute()" class="text-zinc-400 hover:text-white transition">
+                            <i data-lucide="volume-2" id="volume-icon" class="w-4 h-4"></i>
+                        </button>
+                        <input type="range" id="player-volume" min="0" max="1" step="0.02" value="0.85" class="w-full">
+                    </div>
+                </div>
+
             </div>
         </div>
     </footer>
 
-    <!-- MODAL ADMIN / UPLOAD -->
-    <div id="admin-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4">
-        <div class="glass max-w-lg w-full rounded-3xl p-6 md:p-8 space-y-6 relative border border-white/10 shadow-2xl">
-            <button onclick="closeAdminModal()" class="absolute top-6 right-6 text-zinc-400 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
-            
-            <!-- ÉTAPE 1 : LOGIN -->
-            <div id="admin-login-view" class="space-y-6">
-                <div>
-                    <h3 class="text-2xl font-bold text-white">Accès Administrateur</h3>
-                    <p class="text-xs text-zinc-400 mt-1">Entrez le mot de passe pour gérer les productions.</p>
+    <!-- ADMIN MODAL -->
+    <div id="admin-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/80 backdrop-blur-xl overflow-y-auto">
+        
+        <!-- Password Gate -->
+        <div id="password-gate-view" class="glass-panel rounded-3xl max-w-sm w-full p-6 border border-white/15 relative my-auto animate-card-enter">
+            <button onclick="window.closeAdminPortal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-zinc-400 hover:text-white transition">
+                <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+
+            <h2 class="font-display font-bold text-xl text-white mb-5">POL</h2>
+
+            <form onsubmit="window.handlePasswordSubmit(event)" class="space-y-4">
+                <input 
+                    type="password" 
+                    id="admin-password-input" 
+                    placeholder="••••••••"
+                    autocomplete="off"
+                    autocapitalize="none"
+                    autocorrect="off"
+                    spellcheck="false"
+                    class="w-full bg-black/60 border border-white/15 focus:border-purple-500 rounded-xl px-4 py-3 text-white font-mono text-sm focus:outline-none"
+                >
+                <p id="password-error" class="hidden text-xs text-rose-400 font-mono">Accès refusé</p>
+
+                <button type="submit" class="w-full py-3 rounded-xl bg-white text-black font-semibold text-sm hover:opacity-90 transition">
+                    Déverrouiller
+                </button>
+            </form>
+        </div>
+
+        <!-- Upload & Folder Sync Dashboard -->
+        <div id="admin-dashboard-view" class="hidden glass-panel rounded-3xl max-w-xl w-full p-6 border border-white/15 relative my-auto max-h-[92vh] flex flex-col">
+            <div class="flex items-center justify-between pb-4 mb-4 border-b border-white/10 shrink-0">
+                <div class="flex items-center gap-2.5">
+                    <h2 class="font-display font-bold text-xl text-white">POL // Ajouter</h2>
+                    <span id="github-scan-badge" class="px-2.5 py-0.5 rounded-full text-[10px] font-mono bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+                        Catalogue intégré
+                    </span>
                 </div>
-                <div class="space-y-4">
-                    <input type="password" id="admin-pass-input" placeholder="Mot de passe" class="w-full px-4 py-3 rounded-xl bg-zinc-900 border border-white/10 text-white focus:outline-none focus:border-purple-500 transition-colors">
-                    <button onclick="tryLogin()" class="w-full py-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-semibold shadow-lg transition-all">Se connecter</button>
-                </div>
+                <button onclick="window.closeAdminPortal()" class="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-zinc-400 hover:text-white transition">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
             </div>
 
-            <!-- ÉTAPE 2 : UPLOAD / GESTION -->
-            <div id="admin-panel-view" class="space-y-6 hidden">
-                <div class="flex items-center justify-between">
-                    <h3 class="text-2xl font-bold text-white">Panneau Producteur</h3>
-                    <button onclick="logoutAdmin()" class="text-xs text-red-400 hover:underline">Déconnexion</button>
-                </div>
-
-                <!-- BOUTON SYNCHRO GITHUB -->
-                <div class="bg-purple-950/40 border border-purple-500/30 p-3 rounded-2xl flex items-center justify-between">
-                    <div>
-                        <h4 class="text-xs font-bold text-white">Mettre à jour sur GitHub</h4>
-                        <p class="text-[11px] text-zinc-400">Télécharge le fichier mis à jour pour ton téléphone.</p>
+            <div class="overflow-y-auto pr-1 space-y-4 flex-1">
+<div class="p-4 rounded-2xl bg-white/5 text-sm text-zinc-300 space-y-3"><p>Les morceaux et pochettes sont enregistrés dans ce HTML. Place les fichiers à côté de index.html sur GitHub Pages, avec leurs noms d’origine.</p><p>Après un ajout ou une suppression, télécharge le HTML mis à jour et remplace celui du dépôt.</p><button type="button" onclick="window.exportHTML()" class="px-4 py-2 rounded-xl bg-white text-black font-semibold">Télécharger index.html</button></div>                <!-- Auto-Discovered Unassigned Audio Files in GitHub Folder -->
+                <div id="unassigned-files-panel" class="hidden p-3 rounded-2xl bg-purple-500/10 border border-purple-500/30 space-y-2">
+                    <div class="flex items-center justify-between text-[11px] font-mono text-purple-200">
+                        <span>✨ SONS DÉTECTÉS DANS TON DOSSIER GITHUB (CLIQUE POUR PRÉ-REMPLIR)</span>
+                        <span id="unassigned-count-badge">0</span>
                     </div>
-                    <button onclick="exportUpdatedIndex()" class="px-3 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-semibold text-xs transition-all shadow-md flex items-center space-x-1.5 flex-shrink-0">
-                        <i class="fa-solid fa-download"></i>
-                        <span>Télécharger index.html</span>
-                    </button>
+                    <div id="unassigned-files-list" class="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto"></div>
                 </div>
 
-                <div class="space-y-4 bg-zinc-900/50 p-4 rounded-2xl border border-white/5">
-                    <h4 class="font-bold text-sm text-white">Ajouter un nouveau morceau</h4>
+                <!-- Request Upload Form -->
+                <form id="add-track-form" onsubmit="window.handleAddTrack(event)" class="space-y-3">
                     <div>
-                        <label class="text-xs text-zinc-400 block mb-1">Espace musical</label>
-                        <select id="up-space" class="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-white/10 text-white text-sm">
-                            <option value="rock">Premier enregistrement téléphone 2024 Rock</option>
+                        <select id="track-space-select" required class="w-full bg-[#0d0d17] border border-white/15 focus:border-purple-500 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none">
+                            <option value="rock2024">Premier enregistrement au téléphone 2024 Rock</option>
                             <option value="hiphop">Hip-Hop</option>
                             <option value="jazz">Jazz</option>
-                            <option value="acapella">Avec Accapella</option>
-                            <option value="romantic">Mélancolie ou romantique</option>
+                            <option value="accapella">Avec Accapella</option>
+                            <option value="melancolie">Mélancolie / Romantique</option>
                         </select>
                     </div>
-                    <div>
-                        <label class="text-xs text-zinc-400 block mb-1">Titre du morceau</label>
-                        <input type="text" id="up-title" placeholder="Ex: Beat Trap 01" class="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-white/10 text-white text-sm">
-                    </div>
-                    <div>
-                        <label class="text-xs text-zinc-400 block mb-1">Nom du fichier Audio (ex: son.mp3)</label>
-                        <input type="text" id="up-audio" placeholder="mon_beat.mp3" class="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-white/10 text-white text-sm">
-                    </div>
-                    <div>
-                        <label class="text-xs text-zinc-400 block mb-1">Nom de l'image PP (ex: pp.jpg)</label>
-                        <input type="text" id="up-pp" placeholder="ma_pp.jpg" class="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-white/10 text-white text-sm">
-                    </div>
-                    <button onclick="addNewTrack()" class="w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-semibold text-sm transition-all shadow-md">Enregistrer le morceau</button>
-                </div>
 
-                <div class="space-y-2">
-                    <h4 class="font-bold text-sm text-white">Morceaux enregistrés (<span id="total-tracks-count">0</span>)</h4>
-                    <div id="admin-tracks-list" class="max-h-36 overflow-y-auto space-y-2 text-xs">
-                        <!-- Liste admin -->
+                    <div>
+                        <input 
+                            type="text" 
+                            id="track-title-input" 
+                            required
+                            placeholder="Titre du morceau" 
+                            class="w-full bg-[#0d0d17] border border-white/15 focus:border-purple-500 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none"
+                        >
                     </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <!-- Cover / PP File Selection -->
+                        <div class="relative rounded-2xl border border-dashed border-white/20 hover:border-amber-500/60 bg-black/40 p-3 text-center transition">
+                            <input 
+                                type="file" 
+                                id="track-cover-file" 
+                                accept=".jpg,.jpeg,.png,.webp,.gif,image/*" 
+                                onchange="window.handleCoverFileSelect(event)"
+                                class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                            >
+                            <div class="space-y-1 pointer-events-none">
+                                <div class="w-8 h-8 rounded-xl bg-white/5 text-amber-300 flex items-center justify-center mx-auto overflow-hidden">
+                                    <i data-lucide="image" class="w-4 h-4"></i>
+                                </div>
+                                <p id="cover-filename-preview" class="text-[11px] font-mono text-zinc-300 truncate">PP (Image)</p>
+                            </div>
+                        </div>
+
+                        <!-- Audio MP3/WAV File Selection -->
+                        <div class="relative rounded-2xl border border-dashed border-white/20 hover:border-purple-500/60 bg-black/40 p-3 text-center transition">
+                            <input 
+                                type="file" 
+                                id="track-audio-file" 
+                                accept=".mp3,.wav,.ogg,.m4a,audio/*" 
+                                onchange="window.handleAudioFileSelect(event)"
+                                class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                            >
+                            <div class="space-y-1 pointer-events-none">
+                                <div class="w-8 h-8 rounded-xl bg-white/5 text-purple-300 flex items-center justify-center mx-auto">
+                                    <i data-lucide="music" class="w-4 h-4"></i>
+                                </div>
+                                <p id="audio-filename-preview" class="text-[11px] font-mono text-zinc-300 truncate">MP3 / WAV</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" id="submit-request-btn" class="w-full py-2.5 rounded-xl bg-white text-black font-semibold text-sm hover:opacity-90 transition flex items-center justify-center gap-2">
+                        <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                        <span>Ajouter au catalogue</span>
+                    </button>
+                </form>
+
+                <!-- Detected Files in GitHub Folder & Upload Requests Status List -->
+                <div class="pt-3 border-t border-white/10 space-y-2">
+                    <div class="flex items-center justify-between text-[11px] font-mono text-zinc-400">
+                        <span>MORCEAUX ENREGISTRÉS</span>
+                        <div class="flex items-center gap-2">
+                            <span id="requests-count-label">0</span>
+                            <button type="button" onclick="window.scanGitHubFolderAndVerifyAll(true)" class="px-2 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-zinc-200 border border-white/10 transition flex items-center gap-1">
+                                <i data-lucide="refresh-cw" class="w-3 h-3"></i>
+                                <span>Re-vérifier le dossier</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div id="admin-requests-list" class="space-y-2 max-h-48 overflow-y-auto pr-1"></div>
                 </div>
             </div>
-
         </div>
     </div>
 
-    <!-- LOGIQUE JAVASCRIPT (LES MORCEAUX GOUVERNES PAR DÉFAUT CI-DESSOUS) -->
+    <div id="toast-container" class="fixed top-20 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+    <audio id="html5-audio" preload="metadata" crossorigin="anonymous"></audio>
+
     <script>
-        const spacesData = {
-            rock: { title: "Premier enregistrement téléphone 2024 Rock", icon: "fa-guitar" },
-            hiphop: { title: "Hip-Hop", icon: "fa-headphones" },
-            jazz: { title: "Jazz", icon: "fa-sax-hot" },
-            acapella: { title: "Avec Accapella", icon: "fa-microphone-lines" },
-            romantic: { title: "Mélancolie ou romantique", icon: "fa-heart" }
-        };
-
-        // 🌟 LISTE OFFICIELLE DES MORCEAUX (Modifiable dynamiquement ou via le bouton de téléchargement)
-        let tracks = JSON.parse(localStorage.getItem('pol_tracks')) || [
-            // MODIFIE OU AJOUTE TES MORCEAUX ICI DIRECTEMENT SI TU VEUX QU'ILS APPARAISSENT PARTOUT
-            // { id: 1, space: 'rock', title: 'Mon Premier Son', audio: 'son1.mp3', pp: 'pp1.jpg' }
-        ];
-
-        let currentAudio = new Audio();
-        let isPlaying = false;
-        let currentTrackId = null;
-
-        // Navigation
-        function switchTab(tab) {
-            document.getElementById('sec-home').classList.add('hidden');
-            document.getElementById('sec-space').classList.add('hidden');
-
-            ['home', 'rock', 'hiphop', 'jazz', 'acapella', 'romantic'].forEach(t => {
-                const btn = document.getElementById(`nav-${t}`);
-                if(btn) {
-                    if(t === tab) {
-                        btn.className = "px-4 py-2 rounded-xl text-sm font-semibold transition-all bg-purple-600 text-white shadow-md";
-                    } else {
-                        btn.className = "px-4 py-2 rounded-xl text-sm font-medium text-zinc-400 hover:text-white transition-all";
-                    }
-                }
-            });
-
-            if (tab === 'home') {
-                document.getElementById('sec-home').classList.remove('hidden');
-                updateCounts();
-            } else {
-                document.getElementById('sec-space').classList.remove('hidden');
-                document.getElementById('space-title').innerText = spacesData[tab].title;
-                renderSpaceTracks(tab);
+const SPACES={"all":{"id":"all","title":"Tous","headerTitle":"POL","icon":"disc-3","primary":"#a855f7","secondary":"#f59e0b","tertiary":"#f59e0b","pillClass":"from-purple-600 to-amber-500"},"hiphop":{"id":"hiphop","title":"Hip-Hop","headerTitle":"Hip-Hop","icon":"flame","primary":"#9333ea","secondary":"#eab308","tertiary":"#eab308","pillClass":"from-purple-600 to-amber-500"},"rock":{"id":"rock","title":"Rock","headerTitle":"Rock","icon":"guitar","primary":"#ef4444","secondary":"#f59e0b","tertiary":"#f59e0b","pillClass":"from-purple-600 to-amber-500"},"accapella":{"id":"accapella","title":"A cappella","headerTitle":"A cappella","icon":"mic-2","primary":"#06b6d4","secondary":"#3b82f6","tertiary":"#3b82f6","pillClass":"from-purple-600 to-amber-500"},"electro":{"id":"electro","title":"Pop / Techno / Electro","headerTitle":"Pop / Techno / Electro","icon":"radio","primary":"#22c55e","secondary":"#06b6d4","tertiary":"#06b6d4","pillClass":"from-purple-600 to-amber-500"},"jazz":{"id":"jazz","title":"Jazz","headerTitle":"Jazz","icon":"music","primary":"#d97706","secondary":"#fbbf24","tertiary":"#fbbf24","pillClass":"from-purple-600 to-amber-500"},"romantic":{"id":"romantic","title":"Romantique","headerTitle":"Romantique","icon":"moon","primary":"#f43f5e","secondary":"#818cf8","tertiary":"#818cf8","pillClass":"from-purple-600 to-amber-500"}};
+const DEFAULT_COVER='data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="600" height="600"><rect width="600" height="600" fill="#161321"/><circle cx="300" cy="300" r="190" fill="#292034"/><circle cx="300" cy="300" r="65" fill="#a855f7"/><text x="300" y="315" text-anchor="middle" fill="white" font-size="35">POL</text></svg>');
+let allTrackRequests=JSON.parse(document.getElementById('pol-embedded-requests').textContent);
+let currentSpace='all',currentTrackId=null,isPlaying=false,isAdminUnlocked=false;
+let pendingAudioFilename='',pendingCoverFilename='';
+const onlyShowVerifiedFolderFiles=false;
+function normalizeSpaceKey(k){return SPACES[k]?k:'hiphop'}
+function icons(){window.lucide?.createIcons()}
+        function checkPassword(input) {
+            const clean = (input || '').trim().toLowerCase();
+            const codes = [112, 97, 112, 101, 100, 117, 112, 111, 48, 54];
+            if (clean.length !== codes.length) return false;
+            for (let i = 0; i < codes.length; i++) {
+                if (clean.charCodeAt(i) !== codes[i]) return false;
             }
+            return true;
         }
-
-        function updateCounts() {
-            Object.keys(spacesData).forEach(space => {
-                const count = tracks.filter(t => t.space === space).length;
-                const el = document.getElementById(`count-${space}`);
-                if(el) el.innerText = count;
+        function getVisibleTracks() {
+            return allTrackRequests.filter(t => {
+                const matchesSpace = currentSpace === 'all' || normalizeSpaceKey(t.space) === currentSpace;
+                const matchesVerification = !onlyShowVerifiedFolderFiles || t.audioExists;
+                return matchesSpace && matchesVerification;
             });
         }
 
-        function renderSpaceTracks(space) {
-            const container = document.getElementById('space-tracks-container');
-            const spaceTracks = tracks.filter(t => t.space === space);
+        function renderSpaceTabs() {
+            const container = document.getElementById('spaces-tabs-container');
+            container.innerHTML = '';
 
-            if (spaceTracks.length === 0) {
-                container.innerHTML = `<div class="col-span-full py-16 text-center text-zinc-500 text-sm">Aucun morceau dans cet espace. Ajoute-les via l'admin !</div>`;
+            Object.values(SPACES).forEach(space => {
+                const isActive = currentSpace === space.id;
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.onclick = () => switchSpace(space.id);
+                btn.className = `shrink-0 px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-medium transition-all duration-300 flex items-center gap-2 border ${
+                    isActive 
+                        ? `bg-gradient-to-r ${space.pillClass} text-white border-white/30 shadow-lg` 
+                        : 'bg-white/5 hover:bg-white/10 text-zinc-300 border-white/10'
+                }`;
+                btn.innerHTML = `
+                    <i data-lucide="${space.icon}" class="w-4 h-4"></i>
+                    <span>${space.title}</span>
+                `;
+                container.appendChild(btn);
+            });
+
+            icons();
+        }
+
+        function switchSpace(spaceId) {
+            currentSpace = spaceId;
+            const space = SPACES[spaceId] || SPACES['all'];
+
+            document.documentElement.style.setProperty('--accent-primary', space.primary);
+            document.documentElement.style.setProperty('--accent-secondary', space.secondary);
+            document.documentElement.style.setProperty('--accent-glow', space.primary + '44');
+
+            document.getElementById('ambient-orb-1').style.background = `radial-gradient(circle, ${space.primary}, transparent 70%)`;
+            document.getElementById('ambient-orb-2').style.background = `radial-gradient(circle, ${space.secondary}, transparent 70%)`;
+            document.getElementById('ambient-orb-3').style.background = `radial-gradient(circle, ${space.tertiary}, transparent 70%)`;
+
+            document.getElementById('hero-title').textContent = space.headerTitle;
+            document.getElementById('hero-vinyl-glow').style.background = `conic-gradient(from 0deg, ${space.primary}, ${space.secondary}, ${space.tertiary}, ${space.primary})`;
+
+            renderSpaceTabs();
+            renderTracksGrid();
+        }
+
+        function renderTracksGrid() {
+            const grid = document.getElementById('tracks-grid');
+            const emptyState = document.getElementById('empty-state');
+            const visibleTracks = getVisibleTracks();
+
+            if (visibleTracks.length === 0) {
+                grid.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                icons();
                 return;
             }
 
-            container.innerHTML = spaceTracks.map(t => `
-                <div class="glass p-4 rounded-2xl flex items-center justify-between border border-white/5 hover:border-purple-500/30 transition-all group">
-                    <div class="flex items-center space-x-4 min-w-0">
-                        <div class="w-14 h-14 rounded-xl overflow-hidden bg-zinc-800 flex-shrink-0 relative">
-                            <img src="${t.pp}" onerror="this.src='https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=150'" class="w-full h-full object-cover group-hover:scale-105 transition-transform" alt="PP">
+            emptyState.classList.add('hidden');
+            grid.innerHTML = '';
+
+            visibleTracks.forEach((track, idx) => {
+                const isThisPlaying = isPlaying && currentTrackId === track.id;
+                const spaceObj = SPACES[normalizeSpaceKey(track.space)] || SPACES['all'];
+                const coverSrc = track.coverFile ? `./${encodeURI(track.coverFile)}` : DEFAULT_COVER;
+
+                const card = document.createElement('article');
+                card.style.animationDelay = `${Math.min(idx, 5) * 45}ms`;
+                card.className = `glass-card rounded-3xl p-4 flex flex-col justify-between group animate-card-enter ${isThisPlaying ? 'playing-card' : ''}`;
+
+                card.innerHTML = `
+                    <div>
+                        <div class="relative aspect-square rounded-2xl overflow-hidden bg-zinc-900 mb-3.5 border border-white/10">
+                            <img 
+                                src="${coverSrc}" 
+                                alt="${track.title}" 
+                                onerror="this.onerror=null;this.src=window.polFallbackCover"
+                                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                            >
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
+
+                            <span class="absolute top-3 left-3 px-2.5 py-1 rounded-full text-[10px] font-mono bg-black/70 backdrop-blur-md text-white border border-white/15 truncate max-w-[75%]">
+                                ${spaceObj.title}
+                            </span>
+
+                            ${isAdminUnlocked ? `
+                                <button 
+                                    onclick="window.deleteTrackRequest(event, '${track.id}')" 
+                                    class="absolute top-3 right-3 z-20 w-8 h-8 rounded-full bg-black/75 hover:bg-rose-600 text-white flex items-center justify-center transition"
+                                    title="Supprimer"
+                                >
+                                    <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                                </button>
+                            ` : ''}
+
+                            <button 
+                                onclick="window.playTrackById('${track.id}')"
+                                class="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 group-hover:opacity-100 ${isThisPlaying ? '!opacity-100' : ''} transition-opacity duration-300"
+                            >
+                                <div class="w-14 h-14 rounded-full bg-white text-black flex items-center justify-center shadow-2xl transform group-hover:scale-105 transition">
+                                    ${isThisPlaying 
+                                        ? `<div class="flex items-end gap-1 h-5">
+                                             <span class="w-1 bg-black rounded-full eq-bar-1"></span>
+                                             <span class="w-1 bg-black rounded-full eq-bar-2"></span>
+                                             <span class="w-1 bg-black rounded-full eq-bar-3"></span>
+                                           </div>`
+                                        : `<i data-lucide="play" class="w-6 h-6 fill-current ml-0.5"></i>`
+                                    }
+                                </div>
+                            </button>
                         </div>
-                        <div class="min-w-0">
-                            <h4 class="font-bold text-white text-sm truncate">${t.title}</h4>
-                            <p class="text-xs text-zinc-400 truncate">${t.audio}</p>
+
+                        <div class="flex items-center justify-between gap-3 px-1">
+                            <h3 class="font-display font-bold text-base text-white truncate" title="${track.title}">
+                                ${track.title}
+                            </h3>
+                            <button 
+                                onclick="window.playTrackById('${track.id}')"
+                                class="px-3.5 py-1.5 rounded-xl text-xs font-mono font-medium shrink-0 transition ${
+                                    isThisPlaying ? 'bg-white text-black' : 'bg-white/10 hover:bg-white/20 text-white'
+                                }"
+                            >
+                                ${isThisPlaying ? 'Pause' : 'Lecture'}
+                            </button>
                         </div>
                     </div>
-                    <button onclick="playTrack(${t.id})" class="w-10 h-10 rounded-full bg-purple-600 hover:bg-purple-500 flex items-center justify-center text-white shadow-md transition-transform hover:scale-105 flex-shrink-0 ml-3">
-                        <i class="fa-solid fa-play"></i>
-                    </button>
-                </div>
-            `).join('');
+                `;
+                grid.appendChild(card);
+            });
+
+            icons();
         }
 
-        // Lecture Audio
-        function playTrack(id) {
-            const track = tracks.find(t => t.id === id);
-            if(!track) return;
+        const audioEl = document.getElementById('html5-audio');
+        let audioCtx = null;
+        let analyser = null;
+        let mediaSourceNode = null;
 
-            if(currentTrackId !== id) {
-                currentAudio.src = track.audio;
-                currentAudio.load();
-                currentTrackId = id;
+        function ensureAudioContext() {
+            if (!audioCtx) {
+                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                audioCtx = new AudioContextClass();
+                analyser = audioCtx.createAnalyser();
+                analyser.fftSize = 64;
+                analyser.connect(audioCtx.destination);
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        async function playTrackById(trackId) {
+            const track = allTrackRequests.find(t => t.id === trackId);
+            if (!track) return;
+
+            if (currentTrackId === track.id) {
+                togglePlay();
+                return;
             }
 
-            currentAudio.play().then(() => {
-                isPlaying = true;
-                document.getElementById('audio-player-bar').classList.remove('hidden');
-                document.getElementById('player-title').innerText = track.title;
-                document.getElementById('player-space').innerText = spacesData[track.space].title;
-                document.getElementById('player-pp').src = track.pp;
-                document.getElementById('player-pp').classList.add('playing');
-                document.getElementById('play-icon').className = "fa-solid fa-pause";
-            }).catch(e => {
-                alert("Fichier audio introuvable dans le dossier GitHub : " + track.audio);
-            });
+            currentTrackId = track.id;
+            const spaceObj = SPACES[normalizeSpaceKey(track.space)] || SPACES['all'];
+            const coverSrc = track.coverFile ? `./${encodeURI(track.coverFile)}` : DEFAULT_COVER;
+            const audioSrc = `./${encodeURI(track.audioFile)}`;
+
+            const playerCoverEl = document.getElementById('player-cover');
+            const vinylCoverEl = document.getElementById('hero-vinyl-cover');
+            playerCoverEl.onerror = () => { playerCoverEl.onerror=null;playerCoverEl.src = DEFAULT_COVER; };
+            vinylCoverEl.onerror = () => { vinylCoverEl.onerror=null;vinylCoverEl.src = DEFAULT_COVER; };
+            playerCoverEl.src = coverSrc;
+            vinylCoverEl.src = coverSrc;
+
+            document.getElementById('player-title').textContent = track.title;
+            document.getElementById('player-space-badge').textContent = spaceObj.title;
+            document.getElementById('player-space-badge').style.color = spaceObj.primary;
+
+            audioEl.pause();
+            audioEl.src = audioSrc;
+            audioEl.volume = parseFloat(document.getElementById('player-volume').value || 0.85);
+
+            try {
+                try { ensureAudioContext(); } catch (_) {}
+                if (audioCtx && !mediaSourceNode) {
+                    mediaSourceNode = audioCtx.createMediaElementSource(audioEl);
+                    mediaSourceNode.connect(analyser);
+                }
+                await audioEl.play();
+                setPlayingState(true);
+            } catch (err) {
+                setPlayingState(false);
+                showToast(`En attente du fichier ./${track.audioFile} dans le dossier GitHub`);
+            }
+        }
+
+        function setPlayingState(playing) {
+            isPlaying = playing;
+            const playIcon = document.getElementById('master-play-icon');
+            const vinyl = document.getElementById('hero-vinyl');
+
+            if (playing) {
+                playIcon.setAttribute('data-lucide', 'pause');
+                vinyl.classList.add('animate-spin-slow');
+            } else {
+                playIcon.setAttribute('data-lucide', 'play');
+                vinyl.classList.remove('animate-spin-slow');
+            }
+
+            icons();
+            renderTracksGrid();
         }
 
         function togglePlay() {
-            if(!currentAudio.src) return;
-            if(isPlaying) {
-                currentAudio.pause();
-                isPlaying = false;
-                document.getElementById('play-icon').className = "fa-solid fa-play";
-                document.getElementById('player-pp').classList.remove('playing');
+            const visible = getVisibleTracks();
+            if (!currentTrackId && visible.length > 0) {
+                playTrackById(visible[0].id);
+                return;
+            }
+            if (isPlaying) {
+                audioEl.pause();
+                setPlayingState(false);
             } else {
-                currentAudio.play();
-                isPlaying = true;
-                document.getElementById('play-icon').className = "fa-solid fa-pause";
-                document.getElementById('player-pp').classList.add('playing');
+                if(audioCtx?.state==='suspended')audioCtx.resume();
+                audioEl.play().then(() => setPlayingState(true)).catch(() => setPlayingState(false));
             }
         }
 
-        currentAudio.addEventListener('timeupdate', () => {
-            if(currentAudio.duration) {
-                const progress = (currentAudio.currentTime / currentAudio.duration) * 100;
-                document.getElementById('progress-bar').value = progress;
-                document.getElementById('current-time').innerText = formatTime(currentAudio.currentTime);
-                document.getElementById('duration').innerText = formatTime(currentAudio.duration);
-            }
-        });
-
-        currentAudio.addEventListener('ended', () => {
-            isPlaying = false;
-            document.getElementById('play-icon').className = "fa-solid fa-play";
-            document.getElementById('player-pp').classList.remove('playing');
-        });
-
-        function seekAudio(val) {
-            if(currentAudio.duration) {
-                currentAudio.currentTime = (val / 100) * currentAudio.duration;
-            }
+        function playSpaceTracks() {
+            const visible = getVisibleTracks();
+            if (visible.length === 0) return;
+            playTrackById(visible[0].id);
         }
 
-        function setVolume(val) {
-            currentAudio.volume = val;
+        function nextTrack() {
+            const visible = getVisibleTracks();
+            if (visible.length === 0) return;
+            const idx = visible.findIndex(t => t.id === currentTrackId);
+            const nextItem = visible[(idx + 1) % visible.length];
+            playTrackById(nextItem.id);
+        }
+
+        function prevTrack() {
+            const visible = getVisibleTracks();
+            if (visible.length === 0) return;
+            const idx = visible.findIndex(t => t.id === currentTrackId);
+            const prevItem = visible[(idx - 1 + visible.length) % visible.length];
+            playTrackById(prevItem.id);
         }
 
         function formatTime(sec) {
+            if (!sec || isNaN(sec)) return '0:00';
             const m = Math.floor(sec / 60);
             const s = Math.floor(sec % 60);
             return `${m}:${s < 10 ? '0' : ''}${s}`;
         }
 
-        // Admin Modal & Login (papedupo06)
-        function openAdminModal() {
-            document.getElementById('admin-modal').classList.remove('hidden');
-        }
+        audioEl.addEventListener('timeupdate', () => {
+            const cur = audioEl.currentTime;
+            const dur = audioEl.duration || 0;
+            const pct = dur > 0 ? (cur / dur) * 100 : 0;
+            document.getElementById('player-seek').value = pct;
+            document.getElementById('player-progress-fill').style.width = `${pct}%`;
+            document.getElementById('player-current-time').textContent = formatTime(cur);
+            document.getElementById('player-duration').textContent = formatTime(dur);
+        });
 
-        function closeAdminModal() {
-            document.getElementById('admin-modal').classList.add('hidden');
-        }
+        audioEl.addEventListener('ended', () => nextTrack());
 
-        function tryLogin() {
-            const input = document.getElementById('admin-pass-input').value.trim().toLowerCase();
-            const correct = ['p','a','p','e','d','u','p','o','0','6'].join('');
-            if(input === correct) {
-                document.getElementById('admin-login-view').classList.add('hidden');
-                document.getElementById('admin-panel-view').classList.remove('hidden');
-                renderAdminList();
-                document.getElementById('admin-pass-input').value = '';
-            } else {
-                alert("Mot de passe incorrect !");
+        document.getElementById('player-seek').addEventListener('input', (e) => {
+            const pct = parseFloat(e.target.value);
+            document.getElementById('player-progress-fill').style.width = `${pct}%`;
+            if (audioEl.duration) {
+                audioEl.currentTime = (pct / 100) * audioEl.duration;
             }
+        });
+
+        document.getElementById('player-volume').addEventListener('input', (e) => {
+            audioEl.volume = parseFloat(e.target.value);
+        });
+
+        function toggleMute() {
+            audioEl.muted = !audioEl.muted;
+            document.getElementById('volume-icon').setAttribute('data-lucide', audioEl.muted ? 'volume-x' : 'volume-2');
+            icons();
         }
 
-        function logoutAdmin() {
-            document.getElementById('admin-login-view').classList.remove('hidden');
-            document.getElementById('admin-panel-view').classList.add('hidden');
-        }
+        function startVisualizerLoop() {
+            const canvas = document.getElementById('visualizer-canvas');
+            const ctx = canvas.getContext('2d');
+            const dataArray = new Uint8Array(32);
 
-        function addNewTrack() {
-            const space = document.getElementById('up-space').value;
-            const title = document.getElementById('up-title').value.trim();
-            const audio = document.getElementById('up-audio').value.trim();
-            const pp = document.getElementById('up-pp').value.trim();
+            function draw() {
+                requestAnimationFrame(draw);
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            if(!title || !audio || !pp) {
-                alert("Veuillez remplir tous les champs !");
-                return;
+                if (analyser && isPlaying) {
+                    analyser.getByteFrequencyData(dataArray);
+                }
+
+                const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--accent-primary').trim() || '#a855f7';
+                for (let i = 0; i < 15; i++) {
+                    const val = isPlaying ? Math.max(22, dataArray[i]) : 15;
+                    const barHeight = Math.max(3, (val / 255) * canvas.height);
+                    const x = i * 6;
+                    const y = canvas.height - barHeight;
+
+                    ctx.fillStyle = isPlaying ? primaryColor : 'rgba(255,255,255,0.2)';
+                    ctx.beginPath();
+                    ctx.roundRect(x, y, 4, barHeight, 2);
+                    ctx.fill();
+                }
             }
-
-            const newTrack = { id: Date.now(), space, title, audio, pp };
-            tracks.push(newTrack);
-            localStorage.setItem('pol_tracks', JSON.stringify(tracks));
-
-            document.getElementById('up-title').value = '';
-            document.getElementById('up-audio').value = '';
-            document.getElementById('up-pp').value = '';
-
-            renderAdminList();
-            updateCounts();
-            alert("Morceau ajouté ! Pense à cliquer sur 'Télécharger index.html' pour le mettre sur ton GitHub.");
+            draw();
         }
 
-        function deleteTrack(id) {
-            tracks = tracks.filter(t => t.id !== id);
-            localStorage.setItem('pol_tracks', JSON.stringify(tracks));
-            renderAdminList();
-            updateCounts();
-        }
+        /********************************************************************
+         * 7. ADMIN PORTAL & UPLOAD REQUEST HANDLERS
+         ********************************************************************/
+function showToast(message){const el=document.createElement('div');el.className='px-4 py-3 rounded-xl bg-zinc-900 text-white border border-white/20 text-sm';el.textContent=message;document.getElementById('toast-container').append(el);setTimeout(()=>el.remove(),5000)}
+function openAdminPortal(){const modal=document.getElementById('admin-modal');modal.classList.remove('hidden');modal.classList.add('flex');document.getElementById('password-gate-view').classList.toggle('hidden',isAdminUnlocked);document.getElementById('admin-dashboard-view').classList.toggle('hidden',!isAdminUnlocked);if(isAdminUnlocked)renderAdminRequestsList();else document.getElementById('admin-password-input').focus()}
+function closeAdminPortal(){const modal=document.getElementById('admin-modal');modal.classList.add('hidden');modal.classList.remove('flex')}
+function handlePasswordSubmit(e){e.preventDefault();if(checkPassword(document.getElementById('admin-password-input').value)){isAdminUnlocked=true;document.getElementById('admin-password-input').value='';document.getElementById('password-error').classList.add('hidden');openAdminPortal();renderTracksGrid()}else document.getElementById('password-error').classList.remove('hidden')}
+function handleAudioFileSelect(e){pendingAudioFilename=e.target.files[0]?.name||'';document.getElementById('audio-filename-preview').textContent=pendingAudioFilename||'MP3 / WAV';if(!document.getElementById('track-title-input').value)document.getElementById('track-title-input').value=pendingAudioFilename.replace(/\.[^.]+$/,'').replaceAll('_',' ')}
+function handleCoverFileSelect(e){pendingCoverFilename=e.target.files[0]?.name||'';document.getElementById('cover-filename-preview').textContent=pendingCoverFilename||'PP (Image)'}
+function handleAddTrack(e){e.preventDefault();if(!pendingAudioFilename||!pendingCoverFilename){showToast('Choisis un MP3 et une pochette.');return}if(allTrackRequests.some(t=>t.coverFile===pendingCoverFilename&&t.audioFile!==pendingAudioFilename)){showToast('Cette pochette est déjà utilisée. Choisis-en une autre.');return}const item={id:'pol-'+Date.now(),title:document.getElementById('track-title-input').value.trim(),space:document.getElementById('track-space-select').value,audioFile:pendingAudioFilename,coverFile:pendingCoverFilename};allTrackRequests=allTrackRequests.filter(t=>t.audioFile!==item.audioFile);allTrackRequests.push(item);saveManifest();renderAdminRequestsList();switchSpace(item.space);document.getElementById('add-track-form').reset();pendingAudioFilename='';pendingCoverFilename='';document.getElementById('audio-filename-preview').textContent='MP3 / WAV';document.getElementById('cover-filename-preview').textContent='PP (Image)';showToast('Ajout effectué. Télécharge index.html pour enregistrer sur GitHub.')}
+function deleteTrackRequest(e,id){e.stopPropagation();if(currentTrackId===id){audioEl.pause();currentTrackId=null;setPlayingState(false)}allTrackRequests=allTrackRequests.filter(t=>t.id!==id);saveManifest();renderAdminRequestsList();renderTracksGrid()}
+function saveManifest(){document.getElementById('pol-embedded-requests').textContent=JSON.stringify(allTrackRequests,null,2).replaceAll('<','\\u003c')}
+function renderAdminRequestsList(){document.getElementById('requests-count-label').textContent=allTrackRequests.length;const list=document.getElementById('admin-requests-list');list.replaceChildren();for(const track of allTrackRequests){const row=document.createElement('div');row.className='p-3 rounded-xl bg-white/5 text-xs';row.textContent=track.title+' · '+SPACES[track.space].title+' — '+track.audioFile+' / '+track.coverFile;list.append(row)}}
+function exportHTML(){saveManifest();const copy=document.documentElement.cloneNode(true);for(const id of ['tracks-grid','spaces-tabs-container','admin-requests-list','toast-container'])copy.querySelector('#'+id).replaceChildren();copy.querySelector('#admin-modal').classList.add('hidden');copy.querySelector('#admin-modal').classList.remove('flex');copy.querySelector('#html5-audio').removeAttribute('src');copy.querySelector('#hero-vinyl').classList.remove('animate-spin-slow');copy.querySelector('#player-title').textContent='POL';copy.querySelector('#player-space-badge').textContent='POL';const blob=new Blob(['<!DOCTYPE html>\n'+copy.outerHTML],{type:'text/html;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='index.html';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}
+async function scanGitHubFolderAndVerifyAll(){if(location.protocol==='file:'){showToast('Pour vérifier les fichiers, ouvre le site sur un serveur ou sur GitHub Pages.');return}let missing=0;await Promise.all(allTrackRequests.map(async t=>{for(const name of [t.audioFile,t.coverFile]){try{const r=await fetch('./'+encodeURIComponent(name),{method:'HEAD'});if(!r.ok)missing++}catch{missing++}}}));showToast(missing?missing+' fichier(s) introuvable(s). Vérifie les noms et leur emplacement.':'Tous les MP3 et pochettes sont présents.')}
+Object.assign(window,{polFallbackCover:DEFAULT_COVER,checkPassword,switchSpace,playTrackById,togglePlay,playSpaceTracks,nextTrack,prevTrack,toggleMute,openAdminPortal,closeAdminPortal,handlePasswordSubmit,handleAudioFileSelect,handleCoverFileSelect,handleAddTrack,deleteTrackRequest,exportHTML,scanGitHubFolderAndVerifyAll});
+audioEl.addEventListener('pause',()=>{if(isPlaying)setPlayingState(false)});
+audioEl.addEventListener('play',()=>{if(!isPlaying)setPlayingState(true)});
+audioEl.addEventListener('error',()=>{setPlayingState(false);showToast('Fichier audio introuvable. Vérifie son nom et sa présence à côté de index.html.')});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeAdminPortal()});
+document.getElementById('track-space-select').replaceChildren(...Object.values(SPACES).filter(s=>s.id!=='all').map(s=>{const o=document.createElement('option');o.value=s.id;o.textContent=s.title;return o}));
+switchSpace('all');startVisualizerLoop();
 
-        function renderAdminList() {
-            document.getElementById('total-tracks-count').innerText = tracks.length;
-            const list = document.getElementById('admin-tracks-list');
-            if(tracks.length === 0) {
-                list.innerHTML = `<p class="text-zinc-500">Aucun morceau.</p>`;
-                return;
-            }
-            list.innerHTML = tracks.map(t => `
-                <div class="flex items-center justify-between bg-zinc-900 p-2 rounded-xl border border-white/5">
-                    <span class="truncate text-white font-medium">${t.title} (${t.space})</span>
-                    <button onclick="deleteTrack(${t.id})" class="text-red-400 hover:text-red-300 ml-2"><i class="fa-solid fa-trash"></i></button>
-                </div>
-            `).join('');
-        }
-
-        // Fonction magique : Télécharge le fichier index.html avec tous tes sons intégrés dedans
-        function exportUpdatedIndex() {
-            const htmlContent = document.documentElement.outerHTML;
-            // On injecte dynamiquement la liste actuelle des tracks dans le script du fichier exporté
-            const cleanHtml = htmlContent.replace(/let tracks = JSON\.parse\(localStorage\.getItem\('pol_tracks'\)\) \|\| \[[\s\S]*?\];/, `let tracks = ${JSON.stringify(tracks, null, 4)};`);
-            
-            const blob = new Blob([cleanHtml], { type: 'text/html' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'index.html';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-            alert("Fichier index.html téléchargé ! Remplace-le simplement dans ton dépôt GitHub, et ton téléphone affichera tout instantanément !");
-        }
-
-        // Initialisation
-        updateCounts();
     </script>
 </body>
 </html>
